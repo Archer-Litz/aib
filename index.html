@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BORDERLAND: Protocolo Gênesis [SISTEMA SSB v11.0]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- ARQUITETURA VISUAL NUCLEAR --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --neon-red: #ff003c;
+            --dark-bg: #050505;
+            --hacker-green: #0aff0a;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--dark-bg); 
+            color: #d4d4d8; 
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 120%);
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* TELA DE LOGIN OBRIGATÓRIA (LOCK SCREEN) */
+        #start-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 1s ease;
+        }
+        
+        /* ANIMAÇÕES VISUAIS */
+        .scanline {
+            width: 100%; height: 2px; 
+            background: rgba(255, 0, 60, 0.15);
+            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 50;
+            animation: scan 6s linear infinite;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+
+        .flicker { animation: flicker 3s infinite; }
+        @keyframes flicker { 
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 5px red; } 
+            20%, 24%, 55% { opacity: 0.5; text-shadow: none; } 
+        }
+
+        /* BARRAS DE ÁUDIO (VISUALIZER FAKE) */
+        .audio-bar {
+            width: 4px; background: var(--neon-red);
+            animation: audio-bounce 1s infinite ease-in-out;
+        }
+        @keyframes audio-bounce { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+
+        /* PAINÉIS */
+        .tab-content { display: none; opacity: 0; transform: translateY(20px); transition: all 0.5s ease-out; }
+        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
+
+        /* ESTILOS DE FORMULÁRIO CYBERPUNK */
+        .input-cyber {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid #333;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s;
+        }
+        .input-cyber:focus {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
+            outline: none;
+        }
+
+        /* SCROLLBAR CUSTOM */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #500724; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-red); }
+    </style>
+</head>
+<body class="selection:bg-red-900 selection:text-white pb-24">
+
+    <div id="start-overlay">
+        <div class="text-center space-y-8 relative p-10 border border-red-900/30 rounded-3xl bg-zinc-900/20 backdrop-blur-sm">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+            <i class="fa-solid fa-biohazard text-7xl text-red-600 animate-pulse drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]"></i>
+            
+            <div>
+                <h1 class="text-5xl font-black italic uppercase tracking-tighter text-white mb-2">Borderland <span class="text-red-600">SSB</span></h1>
+                <p class="text-zinc-500 font-mono text-xs uppercase tracking-[0.3em]">Protocolo de Imigração v11.0</p>
+            </div>
+
+            <button onclick="startSystem()" class="group relative px-10 py-5 bg-transparent overflow-hidden rounded-none border border-red-600 text-white font-black uppercase tracking-[0.2em] transition-all hover:bg-red-600 hover:shadow-[0_0_40px_rgba(255,0,60,0.6)]">
+                <span class="relative z-10 flex items-center gap-3">
+                    <i class="fa-solid fa-power-off"></i> Iniciar Sistema
+                </span>
+            </button>
+            
+            <p class="text-[10px] text-zinc-600 mt-4 font-mono blink">
+                > AGUARDANDO INTERAÇÃO DO USUÁRIO PARA SINCRONIZAÇÃO DE ÁUDIO...
+            </p>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="https://archive.org/download/dark-ambient-drone-horror-soundscape/dark-ambient-drone-horror-soundscape.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="scanline"></div>
+
+    <nav class="sticky top-0 z-40 bg-black/95 backdrop-blur-md border-b border-red-900/40 px-6 py-4 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+            
+            <div class="flex items-center gap-4 group cursor-default">
+                <div class="relative">
+                    <i class="fa-solid fa-radiation text-red-600 text-3xl animate-spin-slow"></i>
+                    <div class="absolute inset-0 bg-red-600 blur-lg opacity-20"></div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black italic uppercase text-white">BORDERLAND <span class="text-red-600 flicker">TERMINAL</span></h1>
+                    <div class="flex gap-3 text-[9px] font-mono text-zinc-500 mt-1">
+                        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> ONLINE</span>
+                        <span class="text-red-500">PING: 33ms</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 bg-zinc-900/60 p-1.5 rounded-lg border border-zinc-800 backdrop-blur-sm">
+                <button onclick="showTab('lore')" id="btn-lore" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded bg-red-600 text-white shadow-lg transition-all hover:scale-105"><i class="fa-solid fa-book-skull mr-2"></i>Lore & Mundo</button>
+                <button onclick="showTab('rules')" id="btn-rules" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-microchip mr-2"></i>Sistema</button>
+                <button onclick="showTab('psych')" id="btn-psych" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-brain mr-2"></i>Psicologia</button>
+                <button onclick="showTab('sheet')" id="btn-sheet" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-id-card mr-2"></i>Dossiê</button>
+            </div>
+
+            <div id="audio-visualizer" class="hidden flex items-end gap-1 h-6 px-3 py-1 rounded bg-black border border-zinc-800">
+                <div class="audio-bar" style="animation-delay: 0.1s"></div>
+                <div class="audio-bar" style="animation-delay: 0.3s"></div>
+                <div class="audio-bar" style="animation-delay: 0.5s"></div>
+                <div class="audio-bar" style="animation-delay: 0.2s"></div>
+                <span class="ml-2 text-[9px] font-mono text-zinc-500 self-center">AUDIO: ON</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+
+        <div id="lore" class="tab-content active space-y-16">
+            
+            <header class="grid md:grid-cols-2 gap-10 items-center">
+                <div class="space-y-6">
+                    <div class="inline-block px-3 py-1 bg-red-900/30 border border-red-600 rounded text-[10px] font-bold text-red-500 uppercase tracking-widest">Arquivo Confidencial #001</div>
+                    <h2 class="text-5xl md:text-7xl font-black uppercase italic text-white leading-none">O Estado <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-900 flicker">Liminar</span></h2>
+                    <p class="text-zinc-400 text-sm leading-relaxed text-justify border-l-4 border-zinc-800 pl-4">
+                        A Borderland não é um local geográfico. É uma dimensão metafísica coletiva, um "servidor" para consciências humanas que estão entre a vida e a morte biológica. 
+                        Após o Grande Desastre de Tóquio (Meteorito), as vítimas em estado crítico foram "imigradas" para cá.
+                        <br><br>
+                        Neste mundo, as leis da física são secundárias. A lei primária é a <b>Vontade de Viver</b>. O sistema quantifica essa vontade através do Visto. 
+                        Se você desistir, ou se seu tempo acabar, o sistema desconecta sua consciência, resultando em morte cerebral imediata no mundo real.
+                    </p>
+                </div>
+                <div class="bg-black p-6 rounded-2xl border border-zinc-800 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
+                    <h3 class="text-xl font-bold text-white uppercase mb-6 text-center"><i class="fa-solid fa-layer-group text-red-600 mr-2"></i>A Hierarquia da Morte</h3>
+                    <div class="space-y-4 text-xs">
+                        <div class="flex gap-4 items-start">
+                            <div class="bg-blue-900/20 p-2 rounded text-blue-500 font-bold">01</div>
+                            <div>
+                                <strong class="text-blue-400 block uppercase">Jogadores (Imigrantes)</strong>
+                                <p class="text-zinc-500">A base da pirâmide. Vítimas confusas. Objetivo: Renovar o visto e coletar todas as cartas para voltar para casa.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-start">
+                            <div class="bg-red-900/20 p-2 rounded text-red-500 font-bold">02</div>
+                            <div>
+                                <strong class="text-red-400 block uppercase">Dealers (Traidores)</strong>
+                                <p class="text-zinc-500">Jogadores que fizeram um pacto. Eles montam os jogos. Eles ganham visto quando jogadores morrem. Eles são o inimigo invisível.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-start">
+                            <div class="bg-yellow-900/20 p-2 rounded text-yellow-500 font-bold">03</div>
+                            <div>
+                                <strong class="text-yellow-400 block uppercase">Cidadãos (Mestres)</strong>
+                                <p class="text-zinc-500">Ex-humanos que venceram o jogo e escolheram ficar. Eles são os "Reis" e "Rainhas". Eles desenham os jogos impossíveis da Segunda Fase.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="space-y-8">
+                <div class="flex items-center gap-4">
+                    <div class="h-1 flex-1 bg-zinc-800"></div>
+                    <h3 class="text-3xl font-black uppercase text-white italic">A Semiótica dos Naipes</h3>
+                    <div class="h-1 flex-1 bg-zinc-800"></div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-blue-600 hover:bg-zinc-900 transition-all group">
+                        <i class="fa-solid fa-shield-halved text-4xl text-blue-600 mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h4 class="text-lg font-bold text-white uppercase mb-2">Espadas (Spades)</h4>
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">VIGOR • FÍSICO • COMBATE</p>
+                        <p class="text-xs text-zinc-300 leading-relaxed">
+                            A arena é um predador. Jogos de Espadas testam se seu corpo merece continuar funcionando. São maratonas mortais, lutas contra feras ou duelos armados.
+                            <br><br><span class="text-blue-500">Ex: "Pega-Pega" em um prédio cheio de explosivos.</span>
+                        </p>
+                    </div>
+                    
+                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-yellow-500 hover:bg-zinc-900 transition-all group">
+                        <i class="fa-solid fa-brain text-4xl text-yellow-500 mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h4 class="text-lg font-bold text-white uppercase mb-2">Ouros (Diamonds)</h4>
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">INTELECTO • LÓGICA • ESTRATÉGIA</p>
+                        <p class="text-xs text-zinc-300 leading-relaxed">
+                            A arena é um quebra-cabeça. Jogos de Ouros testam sua capacidade de pensar sob pressão. Matemática, física, probabilidade. Sempre existe uma solução teórica perfeita.
+                            <br><br><span class="text-yellow-500">Ex: Resolver uma equação enquanto a sala enche de água fervente.</span>
+                        </p>
+                    </div>
+
+                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-green-600 hover:bg-zinc-900 transition-all group">
+                        <i class="fa-solid fa-users text-4xl text-green-600 mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h4 class="text-lg font-bold text-white uppercase mb-2">Paus (Clubs)</h4>
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">UNIDADE • EQUILÍBRIO • GRUPO</p>
+                        <p class="text-xs text-zinc-300 leading-relaxed">
+                            A arena é um contrato social. Jogos de Paus exigem cooperação. Vocês vivem juntos ou morrem juntos. O egoísmo é punido com a morte de todo o time.
+                            <br><br><span class="text-green-500">Ex: Um time deve correr amarrado um ao outro por um campo minado.</span>
+                        </p>
+                    </div>
+
+                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-red-600 hover:bg-zinc-900 transition-all group">
+                        <i class="fa-solid fa-heart-crack text-4xl text-red-600 mb-4 animate-pulse"></i>
+                        <h4 class="text-lg font-bold text-white uppercase mb-2">Copas (Hearts)</h4>
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">PSIQUE • TRAIÇÃO • SACRIFÍCIO</p>
+                        <p class="text-xs text-zinc-300 leading-relaxed">
+                            A arena é um espelho. O naipe mais cruel. Projetado para destruir a confiança. O jogo força você a matar quem você ama para sobreviver. Não há inimigos, apenas amigos.
+                            <br><br><span class="text-red-500">Ex: 4 pessoas entram, apenas 1 pode sair viva.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="rules" class="tab-content space-y-12">
+            
+            <div class="bg-black p-8 rounded-2xl border border-red-900/50 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                <div class="relative z-10">
+                    <i class="fa-solid fa-eye-slash text-6xl text-red-600 animate-pulse"></i>
+                </div>
+                <div class="relative z-10 space-y-4 text-center md:text-left">
+                    <h2 class="text-3xl font-black uppercase text-red-500">Protocolo "Blind Roll" (Rolagem Cega)</h2>
+                    <p class="text-zinc-300 text-sm leading-relaxed max-w-2xl">
+                        Neste RPG, a <b>INCERTEZA</b> é a mecânica principal. Você nunca vê os números do dado. Na vida real, você não sabe se "passou no teste de pular", você apenas pula e descobre se quebrou a perna ao aterrissar.
+                        <br><br>
+                        <span class="text-white font-bold bg-red-900/30 px-2 py-1 rounded">COMO JOGAR:</span> O jogador declara a ação e seu Atributo. O Mestre rola secretamente (d100). O Mestre narra a consequência visceral.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <article class="space-y-6">
+                    <h3 class="text-xl font-bold text-white uppercase border-b border-zinc-800 pb-2"><i class="fa-solid fa-dice mr-2 text-zinc-500"></i>O Motor d100 (Roll-Under)</h3>
+                    <ul class="space-y-4 text-xs text-zinc-400">
+                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-white">
+                            <strong class="text-white block text-sm mb-1">A Regra de Ouro</strong>
+                            Para ter sucesso, o resultado do dado deve ser <b>IGUAL ou MENOR</b> que seu Atributo (Vigor, Intelecto, etc.).
+                            <br><i>Ex: Se você tem 40 de Vigor, você precisa tirar 40 ou menos no d100.</i>
+                        </li>
+                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-red-500">
+                            <strong class="text-red-400 block text-sm mb-1">Penalidade da Carta</strong>
+                            O Nível da Carta (1 a 10) define a dificuldade.
+                            <br><span class="font-mono text-white">PENALIDADE = NÍVEL DA CARTA x 5</span>
+                            <br><i>Ex: Um jogo "4 de Espadas" aplica -20% em todos os seus testes.</i>
+                        </li>
+                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-yellow-500">
+                            <strong class="text-yellow-400 block text-sm mb-1">Críticos & Duplos</strong>
+                            Números iguais (11, 22, 33...) são eventos críticos.
+                            <br>• Abaixo do alvo: <b>Sucesso Brilhante</b> (ganha tempo/vantagem).
+                            <br>• Acima do alvo: <b>Falha Catastrófica</b> (Gera Teste de Pânico).
+                        </li>
+                    </ul>
+                </article>
+
+                <article class="space-y-6">
+                    <h3 class="text-xl font-bold text-white uppercase border-b border-zinc-800 pb-2"><i class="fa-solid fa-brain mr-2 text-zinc-500"></i>Ciclo de Colapso (Stress)</h3>
+                    <p class="text-xs text-zinc-500">O Stress nunca zera sozinho. Ele acumula até te matar.</p>
+                    
+                    <div class="overflow-hidden rounded-xl border border-zinc-800">
+                        <table class="w-full text-left text-[10px] mono uppercase">
+                            <thead class="bg-zinc-950 text-zinc-400">
+                                <tr>
+                                    <th class="p-3">Nível de Stress</th>
+                                    <th class="p-3">Efeito Fisiológico</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-800 text-zinc-300 bg-black">
+                                <tr>
+                                    <td class="p-3 font-bold">00 - 09</td>
+                                    <td class="p-3 text-blue-400">ANSIEDADE LEVE<br><span class="text-zinc-600 normal-case">Tremores nas mãos. Suor frio.</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">10 - 19</td>
+                                    <td class="p-3 text-yellow-500">DESVANTAGEM MENTAL<br><span class="text-zinc-600 normal-case">Dificuldade de fala. Visão de túnel. -10% em Intelecto.</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">20 - 24</td>
+                                    <td class="p-3 text-orange-500">PARANOIA AGUDA<br><span class="text-zinc-600 normal-case">O jogador deve fugir ou atacar o aliado mais próximo.</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-red-600">25+ (MÁX)</td>
+                                    <td class="p-3 text-red-600 font-black blink">COLAPSO FATAL<br><span class="text-red-900 normal-case">Parada cardíaca induzida pelo medo. Morte.</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div id="psych" class="tab-content space-y-12">
+            <header class="text-center">
+                <h2 class="text-4xl font-black uppercase italic text-white mb-2">Quem você era <span class="text-red-600">Antes?</span></h2>
+                <p class="text-xs text-zinc-500 max-w-2xl mx-auto">
+                    Na Borderland, seu passado é sua única ferramenta. Sua profissão define suas habilidades técnicas (bônus). Sua Natureza define seus vícios e como você quebra sob pressão.
+                </p>
+            </header>
+
+            <div class="grid lg:grid-cols-2 gap-10 h-[600px]">
+                
+                <section class="flex flex-col h-full bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-inner">
+                    <div class="p-4 bg-black border-b border-zinc-800 flex justify-between items-center">
+                        <h3 class="font-bold text-white uppercase text-xs tracking-widest"><i class="fa-solid fa-briefcase mr-2"></i>Catálogo de Ofícios</h3>
+                        <span class="text-[9px] bg-zinc-800 px-2 py-1 rounded text-zinc-400">30+ ARQUIVOS</span>
+                    </div>
+                    
+                    <div class="overflow-y-auto p-4 space-y-3 custom-scroll flex-1 bg-zinc-950/50">
+                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Militar / Policial</h4><i class="fa-solid fa-gun text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Treinamento de supressão de medo. Ignora testes de Pânico em combate armado.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Bombeiro Civil</h4><i class="fa-solid fa-fire-extinguisher text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Força para arrombamento e resistência extrema a calor/fumaça.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Yakuza / Executor</h4><i class="fa-solid fa-skull text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Intimidação física. +20 em testes de Vigor para causar dor ou medo.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Atleta de Parkour</h4><i class="fa-solid fa-person-running text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Mobilidade urbana. Pode re-rolar qualquer teste de fuga em ambiente vertical.</p>
+                        </div>
+
+                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Médico Cirurgião</h4><i class="fa-solid fa-user-doctor text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Diagnóstico Rápido. Pode usar Intelecto para curar ferimentos leves e estabilizar Stress.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Hacker / Dev</h4><i class="fa-solid fa-laptop-code text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Lógica Digital. Manipula qualquer eletrônico da arena. Resolve enigmas 50% mais rápido.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Investidor Financeiro</h4><i class="fa-solid fa-money-bill-trend-up text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Cálculo de Risco. Sabe instintivamente qual opção tem maior probabilidade matemática.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Eletricista / Mecânico</h4><i class="fa-solid fa-wrench text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Pode consertar ou sabotar maquinário da arena. Entende plantas de prédios.</p>
+                        </div>
+
+                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Político / CEO</h4><i class="fa-solid fa-bullhorn text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Oratória. Em jogos de Paus, concede +10 em testes para todos os aliados ouvintes.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Professor</h4><i class="fa-solid fa-chalkboard-user text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Didática. Pode transferir seu bônus de Intelecto para outro jogador por uma rodada.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Motorista de Fuga</h4><i class="fa-solid fa-car text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Perícia total em qualquer veículo terrestre. Sincronia perfeita com passageiros.</p>
+                        </div>
+
+                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Psicólogo Clínico</h4><i class="fa-solid fa-couch text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Empatia. Recupera o dobro de Stress ao descansar. Pode acalmar aliados em Pânico.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Vigarista / Golpista</h4><i class="fa-solid fa-masks-theater text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Leitura Fria. Detecta mentiras e intenções ocultas automaticamente 1x por jogo.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Host / Hostess</h4><i class="fa-solid fa-martini-glass text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Manipulação Emocional. Vantagem em testes para seduzir ou enganar NPCs/Dealers.</p>
+                        </div>
+                        <div class="job-card bg-zinc-900 border-l-2 border-purple-500 p-3 rounded hover:bg-zinc-800 transition-colors">
+                            <div class="flex justify-between"><h4 class="text-purple-500 font-bold text-xs uppercase">NEET / Gamer</h4><i class="fa-solid fa-gamepad text-zinc-600 text-xs"></i></div>
+                            <p class="text-[10px] text-zinc-400 mt-1">Meta-Gaming. Entende a "lógica do mestre" e regras ocultas mais rápido que qualquer um.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="flex flex-col h-full bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden shadow-inner">
+                    <h3 class="p-4 bg-black font-bold text-white border-b border-zinc-800 uppercase tracking-widest text-xs">Espectro de Natureza</h3>
+                    <div class="p-4 bg-red-950/30 border-b border-red-900/30 text-[10px] text-red-300 italic mb-2 font-mono flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span><b>REGRA DA VIOLAÇÃO:</b> Agir contra sua natureza = 1 Ponto de Interferência para o Mestre.</span>
+                    </div>
+                    
+                    <div class="overflow-y-auto p-4 space-y-2 custom-scroll flex-1 bg-zinc-950/50">
+                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
+                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Analítico (Frieza) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
+                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
+                                <p>Vê o mundo como números. Sacrifica um para salvar dez sem hesitar.</p>
+                                <p class="text-red-400">✖ Violação: Agir por emoção irracional, pena ou amor.</p>
+                            </div>
+                        </details>
+                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
+                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Covarde (Sobrevivência) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
+                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
+                                <p>O medo é sua arma. Você foge primeiro e pergunta depois. Prioriza a si mesmo.</p>
+                                <p class="text-red-400">✖ Violação: Arriscar a própria vida por um estranho.</p>
+                            </div>
+                        </details>
+                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
+                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Heroico (Mártir) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
+                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
+                                <p>Complexo de Salvador. Incapaz de deixar alguém para trás, mesmo que seja suicídio.</p>
+                                <p class="text-red-400">✖ Violação: Fugir e deixar alguém morrer.</p>
+                            </div>
+                        </details>
+                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
+                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Sádico (Prazer) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
+                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
+                                <p>A adrenalina e a dor alheia te fazem sentir vivo. Você provoca conflitos.</p>
+                                <p class="text-red-400">✖ Violação: Demonstrar misericórdia genuína ou paz.</p>
+                            </div>
+                        </details>
+                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
+                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Niilista (Vazio) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
+                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
+                                <p>Não vê sentido em viver ou morrer. Age de forma imprudente e aleatória.</p>
+                                <p class="text-red-400">✖ Violação: Demonstrar esperança no futuro ou medo da morte.</p>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="sheet" class="tab-content space-y-8">
+            <div class="bg-zinc-900/90 p-8 rounded-3xl border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden backdrop-blur-sm">
+                
+                <i class="fa-solid fa-fingerprint absolute -right-20 -bottom-20 text-[20rem] text-white opacity-5 pointer-events-none rotate-12"></i>
+
+                <div class="grid lg:grid-cols-12 gap-8 relative z-10">
+                    
+                    <div class="lg:col-span-4 space-y-6">
+                        
+                        <div class="relative w-full aspect-[3/4] bg-black rounded-xl border-2 border-dashed border-zinc-700 hover:border-red-600 transition-all cursor-pointer overflow-hidden group shadow-lg" onclick="triggerPhotoUpload()">
+                            <input type="file" id="photo-input" class="hidden" accept="image/*" onchange="loadPhoto(event)">
+                            <img id="char-photo" class="hidden w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity">
+                            <div id="photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 group-hover:text-red-500 transition-colors">
+                                <i class="fa-solid fa-camera text-4xl mb-2"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Carregar Biometria</span>
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/10 to-transparent h-2 w-full animate-[scan_2s_linear_infinite] pointer-events-none"></div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Nome de Registro</label>
+                                <input type="text" id="char-name" class="input-cyber w-full p-2 text-lg font-bold uppercase rounded" placeholder="NOME COMPLETO...">
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Profissão Anterior</label>
+                                <select id="char-job" onchange="updateJobInfo()" class="input-cyber w-full p-2 text-xs font-bold uppercase rounded cursor-pointer">
+                                    <option value="">Selecione...</option>
+                                    <optgroup label="ESPADAS (FÍSICO)">
+                                        <option value="mil" data-bonus="spades" data-skill="Militar: Ignora penalidade de Pânico em combate.">Militar / Policial</option>
+                                        <option value="atl" data-bonus="spades" data-skill="Atleta: Rerola 1 teste de Fuga por sessão.">Atleta Profissional</option>
+                                        <option value="bom" data-bonus="spades" data-skill="Bombeiro: Vantagem em força bruta.">Bombeiro Civil</option>
+                                        <option value="yak" data-bonus="spades" data-skill="Yakuza: +20 em testes de intimidação física.">Yakuza</option>
+                                    </optgroup>
+                                    <optgroup label="OUROS (LÓGICA)">
+                                        <option value="med" data-bonus="diamonds" data-skill="Médico: Cura Stress de aliados com Lógica.">Médico Cirurgião</option>
+                                        <option value="hac" data-bonus="diamonds" data-skill="Hacker: Manipula eletrônicos da arena.">Hacker / Dev</option>
+                                        <option value="eng" data-bonus="diamonds" data-skill="Engenheiro: Detecta falhas estruturais.">Engenheiro Civil</option>
+                                        <option value="inv" data-bonus="diamonds" data-skill="Investidor: Calcula probabilidades de risco.">Investidor</option>
+                                    </optgroup>
+                                    <optgroup label="PAUS (EQUILÍBRIO)">
+                                        <option value="pol" data-bonus="clubs" data-skill="Líder: +10 em testes de Unidade para o grupo.">Político / Líder</option>
+                                        <option value="mot" data-bonus="clubs" data-skill="Motorista: Perito total em veículos.">Motorista</option>
+                                        <option value="pro" data-bonus="clubs" data-skill="Professor: Transfere bônus de Intelecto a aliado.">Professor</option>
+                                    </optgroup>
+                                    <optgroup label="COPAS (PSIQUE)">
+                                        <option value="psi" data-bonus="hearts" data-skill="Psicólogo: Recupera dobro de Stress.">Psicólogo Clínico</option>
+                                        <option value="vig" data-bonus="hearts" data-skill="Vigarista: Detecta mentiras 1x por jogo.">Vigarista</option>
+                                        <option value="gam" data-bonus="hearts" data-skill="Gamer: Identifica regras ocultas.">NEET / Gamer</option>
+                                        <option value="hos" data-bonus="hearts" data-skill="Host: Vantagem em manipulação social.">Host / Hostess</option>
+                                    </optgroup>
+                                </select>
+                                <div id="job-desc-box" class="mt-2 p-2 bg-red-900/10 border-l-2 border-red-600 text-[9px] text-zinc-400 italic min-h-[40px] font-mono">
+                                    Habilidade passiva aparecerá aqui...
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Natureza (Vício)</label>
+                                <select id="char-nature" class="input-cyber w-full p-2 text-xs font-bold uppercase rounded">
+                                    <option>Analítico</option>
+                                    <option>Covarde</option>
+                                    <option>Heroico</option>
+                                    <option>Sádico</option>
+                                    <option>Niilista</option>
+                                    <option>Diplomata</option>
+                                    <option>Instintivo</option>
+                                    <option>Controlador</option>
+                                    <option>Vingativo</option>
+                                    <option>Devoto</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Trauma / Passado</label>
+                                <textarea id="char-bio" class="input-cyber w-full p-3 rounded text-xs h-24 resize-none" placeholder="O que você deixou para trás?"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8 space-y-8">
+                        
+                        <div class="bg-black p-8 rounded-2xl border border-zinc-800 text-center relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                            
+                            <h3 class="relative z-10 text-xs font-black uppercase text-zinc-500 mb-6 tracking-[0.3em]">
+                                <i class="fa-solid fa-dice-d20 mr-2"></i>Interface de Ação (Rolagem Cega)
+                            </h3>
+                            
+                            <div class="relative z-10 flex flex-col md:flex-row gap-6 justify-center items-end">
+                                <div class="w-full md:w-auto">
+                                    <label class="text-[10px] text-zinc-400 uppercase block mb-2 font-bold">Valor do Atributo</label>
+                                    <input type="number" id="roll-attr" value="40" class="input-cyber w-full md:w-32 text-center text-3xl text-white font-black p-3 rounded-xl border-2 border-zinc-700 focus:border-red-600">
+                                </div>
+                                <button onclick="blindRoll()" class="w-full md:w-auto bg-red-700 hover:bg-red-600 text-white font-black uppercase italic py-4 px-10 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 transform hover:-translate-y-1">
+                                    TRANSMITIR AÇÃO
+                                </button>
+                            </div>
+                            
+                            <div id="roll-feedback-container" class="mt-6 h-8 flex items-center justify-center">
+                                <div id="roll-feedback" class="text-xs font-bold uppercase tracking-widest text-zinc-600 opacity-0 transition-all duration-300">
+                                    Aguardando Input...
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-zinc-600 mt-2 italic relative z-10">Nota: O resultado é oculto. Informe o valor ao Mestre e descreva sua ação.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-blue-600 hover:bg-zinc-800 transition-colors">
+                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-blue-500 tracking-widest">Vigor</span><i class="fa-solid fa-shield text-blue-900"></i></div>
+                                <input type="number" id="attr-spades" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
+                            </div>
+                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-yellow-500 hover:bg-zinc-800 transition-colors">
+                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-yellow-500 tracking-widest">Intelecto</span><i class="fa-solid fa-brain text-yellow-900"></i></div>
+                                <input type="number" id="attr-diamonds" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
+                            </div>
+                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-red-600 hover:bg-zinc-800 transition-colors">
+                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-red-500 tracking-widest">Psique</span><i class="fa-solid fa-heart-crack text-red-900"></i></div>
+                                <input type="number" id="attr-hearts" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
+                            </div>
+                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-green-600 hover:bg-zinc-800 transition-colors">
+                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-green-500 tracking-widest">Unidade</span><i class="fa-solid fa-handshake text-green-900"></i></div>
+                                <input type="number" id="attr-clubs" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-8 shadow-inner">
+                            <div>
+                                <div class="flex justify-between items-end mb-3"><span class="text-xs font-black uppercase text-zinc-500"><i class="fa-solid fa-clock mr-2"></i>Dias de Visto</span><span id="txt-visa" class="text-3xl font-black text-red-600 mono drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]">3 DIAS</span></div>
+                                <input type="range" id="rng-visa" min="0" max="15" value="3" class="w-full accent-red-600 bg-zinc-800 h-3 rounded-lg appearance-none cursor-pointer" oninput="updateBars()">
+                                <div class="flex justify-between text-[8px] text-zinc-600 uppercase mt-1 px-1"><span>Morte Imediata</span><span>Seguro</span></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-end mb-3"><span class="text-xs font-black uppercase text-zinc-500"><i class="fa-solid fa-bolt mr-2"></i>Carga de Stress</span><span id="txt-stress" class="text-3xl font-black text-white mono">0 / 20</span></div>
+                                <div class="h-4 w-full bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800"><div id="bar-stress" class="h-full bg-zinc-500 w-0 transition-all duration-300 relative"></div></div>
+                                <input type="range" id="rng-stress" min="0" max="25" value="0" class="w-full mt-4 accent-zinc-500 h-1 bg-transparent appearance-none cursor-pointer" oninput="updateBars()">
+                                <p id="panic-msg" class="text-center text-red-500 font-bold text-xs mt-2 hidden animate-pulse"><i class="fa-solid fa-triangle-exclamation mr-1"></i> LIMIAR DE PÂNICO ATINGIDO</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 pt-4 border-t border-zinc-800">
+                            <button onclick="downloadSheet()" class="flex-1 bg-zinc-900 hover:bg-red-900/30 text-zinc-300 hover:text-white font-bold uppercase py-3 rounded-lg transition-all border border-zinc-800 hover:border-red-600"><i class="fa-solid fa-download mr-2"></i> Salvar Dossiê</button>
+                            <button onclick="uploadSheet()" class="px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all border border-zinc-800"><i class="fa-solid fa-upload"></i></button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. SISTEMA DE LOGIN (GARANTE ÁUDIO) ---
+        function startSystem() {
+            const overlay = document.getElementById('start-overlay');
+            const audio = document.getElementById('bg-music');
+            const visualizer = document.getElementById('audio-visualizer');
+            
+            audio.volume = 0.5;
+            audio.play().then(() => {
+                visualizer.classList.remove('hidden');
+                visualizer.classList.add('flex');
+            }).catch(e => {
+                console.log("Autoplay bloqueado. Clique necessário.");
+            });
+
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+        }
+
+        function toggleMusic() {
+            const audio = document.getElementById('bg-music');
+            const btn = document.getElementById('music-btn');
+            
+            if (audio.paused) {
+                audio.play();
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ÁUDIO';
+                btn.classList.remove('animate-pulse');
+            } else {
+                audio.pause();
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ÁUDIO';
+            }
+        }
+
+        // --- 2. NAVEGAÇÃO ---
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white', 'shadow-lg');
+                btn.classList.add('text-zinc-400');
+            });
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('bg-red-600', 'text-white', 'shadow-lg');
+            document.getElementById('btn-' + id).classList.remove('text-zinc-400');
+        }
+
+        // --- 3. PROFISSÕES ---
+        function updateJobInfo() {
+            const select = document.getElementById('char-job');
+            const option = select.options[select.selectedIndex];
+            const descBox = document.getElementById('job-desc-box');
+            resetStats();
+            if (option.value) {
+                descBox.innerHTML = `<span class="text-white font-bold">Habilidade:</span> ${option.getAttribute('data-skill')}`;
+                descBox.classList.remove('text-zinc-400');
+                descBox.classList.add('text-red-400');
+                const bonus = option.getAttribute('data-bonus');
+                if(bonus) document.getElementById('attr-' + bonus).value = 40;
+            } else {
+                descBox.innerHTML = "Habilidade passiva aparecerá aqui...";
+                descBox.classList.add('text-zinc-400');
+                descBox.classList.remove('text-red-400');
+            }
+        }
+
+        function resetStats() {
+            ['spades','diamonds','hearts','clubs'].forEach(s => document.getElementById('attr-'+s).value = 30);
+        }
+
+        // --- 4. BARRAS VITAIS ---
+        function updateBars() {
+            const visa = document.getElementById('rng-visa').value;
+            const stress = document.getElementById('rng-stress').value;
+            
+            const visaTxt = document.getElementById('txt-visa');
+            visaTxt.innerText = visa + " DIAS";
+            visa <= 3 ? visaTxt.classList.add('animate-pulse','text-red-600') : visaTxt.classList.remove('animate-pulse','text-red-600');
+            
+            document.getElementById('txt-stress').innerText = stress + " / 20";
+            const bar = document.getElementById('bar-stress');
+            bar.style.width = Math.min((stress/25)*100, 100) + "%";
+            
+            if(stress < 10) bar.style.backgroundColor = "#3b82f6";
+            else if(stress < 20) bar.style.backgroundColor = "#eab308";
+            else bar.style.backgroundColor = "#dc2626";
+
+            const panic = document.getElementById('panic-msg');
+            stress >= 20 ? panic.classList.remove('hidden') : panic.classList.add('hidden');
+        }
+
+        // --- 5. ROLAGEM CEGA ---
+        function blindRoll() {
+            const feedback = document.getElementById('roll-feedback');
+            const attrVal = document.getElementById('roll-attr').value;
+            feedback.style.opacity = 1;
+            feedback.innerHTML = `<i class="fa-solid fa-wifi mr-2 fa-beat"></i> ENVIANDO [${attrVal}] AO MESTRE...`;
+            feedback.className = "text-xs font-bold uppercase tracking-widest text-yellow-500";
+            
+            setTimeout(() => {
+                feedback.innerHTML = `<i class="fa-solid fa-check mr-2"></i> DADOS RECEBIDOS. AGUARDE RESULTADO.`;
+                feedback.className = "text-xs font-bold uppercase tracking-widest text-green-500";
+            }, 1500);
+            setTimeout(() => feedback.style.opacity = 0, 4500);
+        }
+
+        // --- 6. FOTO ---
+        function triggerPhotoUpload() { document.getElementById('photo-input').click(); }
+        function loadPhoto(e) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const img = document.getElementById('char-photo');
+                img.src = reader.result;
+                img.classList.remove('hidden');
+                document.getElementById('photo-placeholder').classList.add('hidden');
+            }
+            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+        }
+
+        // --- 7. SAVE/LOAD ---
+        function downloadSheet() {
+            const data = {
+                name: document.getElementById('char-name').value,
+                jobIdx: document.getElementById('char-job').selectedIndex,
+                natureIdx: document.getElementById('char-nature').selectedIndex,
+                bio: document.getElementById('char-bio').value,
+                stats: {
+                    spades: document.getElementById('attr-spades').value,
+                    diamonds: document.getElementById('attr-diamonds').value,
+                    hearts: document.getElementById('attr-hearts').value,
+                    clubs: document.getElementById('attr-clubs').value
+                },
+                visa: document.getElementById('rng-visa').value,
+                stress: document.getElementById('rng-stress').value,
+                photo: document.getElementById('char-photo').src
+            };
+            const el = document.createElement('a');
+            el.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            el.download = "dossie_borderland.json";
+            el.click();
+        }
+
+        function uploadSheet() {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = '.json';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = re => {
+                    const d = JSON.parse(re.target.result);
+                    document.getElementById('char-name').value = d.name || "";
+                    document.getElementById('char-job').selectedIndex = d.jobIdx || 0;
+                    document.getElementById('char-nature').selectedIndex = d.natureIdx || 0;
+                    updateJobInfo();
+                    document.getElementById('char-bio').value = d.bio || "";
+                    if(d.stats) {
+                        document.getElementById('attr-spades').value = d.stats.spades;
+                        document.getElementById('attr-diamonds').value = d.stats.diamonds;
+                        document.getElementById('attr-hearts').value = d.stats.hearts;
+                        document.getElementById('attr-clubs').value = d.stats.clubs;
+                    }
+                    document.getElementById('rng-visa').value = d.visa || 3;
+                    document.getElementById('rng-stress').value = d.stress || 0;
+                    updateBars();
+                    if(d.photo && d.photo.length > 50) {
+                        const img = document.getElementById('char-photo');
+                        img.src = d.photo;
+                        img.classList.remove('hidden');
+                        document.getElementById('photo-placeholder').classList.add('hidden');
+                    }
+                    alert("Dossiê carregado.");
+                }
+                reader.readAsText(e.target.files[0]);
+            }
+            input.click();
+        }
+
+        updateBars();
+    </script>
+</body>
+</html>
