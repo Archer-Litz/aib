@@ -3,779 +3,865 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BORDERLAND: Protocolo Gênesis [SISTEMA SSB v11.0]</title>
+    <title>BORDERLAND: Protocolo Gênesis [SISTEMA SSB v12.0 EXTENDED]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- ARQUITETURA VISUAL NUCLEAR --- */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
         :root {
             --neon-red: #ff003c;
-            --dark-bg: #050505;
-            --hacker-green: #0aff0a;
+            --neon-blue: #00f3ff;
+            --bg-dark: #050505;
+            --panel-bg: rgba(15, 15, 15, 0.98);
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--dark-bg); 
-            color: #d4d4d8; 
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: #d4d4d8;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.95)),
+                url('https://www.transparenttextures.com/patterns/dark-matter.png');
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 120%);
+            font-size: 16px;
+            line-height: 1.6;
         }
-        .mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* TELA DE LOGIN OBRIGATÓRIA (LOCK SCREEN) */
-        #start-overlay {
-            position: fixed; inset: 0; z-index: 9999;
-            background: #000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
-        }
+        .mono { font-family: 'Share Tech Mono', monospace; }
+
+        /* Typography & Effects */
+        h1, h2, h3, h4 { letter-spacing: 0.05em; }
+        .title-glow { text-shadow: 0 0 15px var(--neon-red); }
+        .text-justify-custom { text-align: justify; text-justify: inter-word; }
         
-        /* ANIMAÇÕES VISUAIS */
         .scanline {
-            width: 100%; height: 2px; 
-            background: rgba(255, 0, 60, 0.15);
-            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 50;
-            animation: scan 6s linear infinite;
-        }
-        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
-
-        .flicker { animation: flicker 3s infinite; }
-        @keyframes flicker { 
-            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 5px red; } 
-            20%, 24%, 55% { opacity: 0.5; text-shadow: none; } 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            opacity: 0.15;
         }
 
-        /* BARRAS DE ÁUDIO (VISUALIZER FAKE) */
-        .audio-bar {
-            width: 4px; background: var(--neon-red);
-            animation: audio-bounce 1s infinite ease-in-out;
-        }
-        @keyframes audio-bounce { 0%, 100% { height: 5px; } 50% { height: 20px; } }
-
-        /* PAINÉIS */
-        .tab-content { display: none; opacity: 0; transform: translateY(20px); transition: all 0.5s ease-out; }
-        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
-
-        /* ESTILOS DE FORMULÁRIO CYBERPUNK */
-        .input-cyber {
-            background: rgba(10, 10, 10, 0.9);
-            border: 1px solid #333;
-            color: #fff;
-            font-family: 'JetBrains Mono', monospace;
-            transition: all 0.3s;
-        }
-        .input-cyber:focus {
-            border-color: var(--neon-red);
-            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
-            outline: none;
-        }
-
-        /* SCROLLBAR CUSTOM */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #500724; border-radius: 4px; }
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; }
         ::-webkit-scrollbar-thumb:hover { background: var(--neon-red); }
+
+        /* Tabs Logic */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; }
+
+        /* Custom Cards */
+        .lore-card {
+            background: var(--panel-bg);
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+        .lore-card:hover { border-color: var(--neon-red); transform: translateY(-2px); }
+
+        .skill-badge {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
-<body class="selection:bg-red-900 selection:text-white pb-24">
-
-    <div id="start-overlay">
-        <div class="text-center space-y-8 relative p-10 border border-red-900/30 rounded-3xl bg-zinc-900/20 backdrop-blur-sm">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
-            <i class="fa-solid fa-biohazard text-7xl text-red-600 animate-pulse drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]"></i>
-            
-            <div>
-                <h1 class="text-5xl font-black italic uppercase tracking-tighter text-white mb-2">Borderland <span class="text-red-600">SSB</span></h1>
-                <p class="text-zinc-500 font-mono text-xs uppercase tracking-[0.3em]">Protocolo de Imigração v11.0</p>
-            </div>
-
-            <button onclick="startSystem()" class="group relative px-10 py-5 bg-transparent overflow-hidden rounded-none border border-red-600 text-white font-black uppercase tracking-[0.2em] transition-all hover:bg-red-600 hover:shadow-[0_0_40px_rgba(255,0,60,0.6)]">
-                <span class="relative z-10 flex items-center gap-3">
-                    <i class="fa-solid fa-power-off"></i> Iniciar Sistema
-                </span>
-            </button>
-            
-            <p class="text-[10px] text-zinc-600 mt-4 font-mono blink">
-                > AGUARDANDO INTERAÇÃO DO USUÁRIO PARA SINCRONIZAÇÃO DE ÁUDIO...
-            </p>
-        </div>
-    </div>
-
-    <audio id="bg-music" loop>
-        <source src="https://archive.org/download/dark-ambient-drone-horror-soundscape/dark-ambient-drone-horror-soundscape.mp3" type="audio/mpeg">
-    </audio>
-
+<body class="min-h-screen pb-24">
     <div class="scanline"></div>
 
-    <nav class="sticky top-0 z-40 bg-black/95 backdrop-blur-md border-b border-red-900/40 px-6 py-4 shadow-2xl">
-        <div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
-            
-            <div class="flex items-center gap-4 group cursor-default">
-                <div class="relative">
-                    <i class="fa-solid fa-radiation text-red-600 text-3xl animate-spin-slow"></i>
-                    <div class="absolute inset-0 bg-red-600 blur-lg opacity-20"></div>
-                </div>
+    <!-- Navegação Superior -->
+    <header class="sticky top-0 z-40 bg-black/95 backdrop-blur-md border-b border-red-900/40 p-4 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-radiation text-5xl text-red-600 animate-pulse drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"></i>
                 <div>
-                    <h1 class="text-xl font-black italic uppercase text-white">BORDERLAND <span class="text-red-600 flicker">TERMINAL</span></h1>
-                    <div class="flex gap-3 text-[9px] font-mono text-zinc-500 mt-1">
-                        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> ONLINE</span>
-                        <span class="text-red-500">PING: 33ms</span>
-                    </div>
+                    <h1 class="text-3xl font-black uppercase italic text-white title-glow">Protocolo <span class="text-red-600">Gênesis</span></h1>
+                    <p class="text-[10px] text-zinc-500 mono tracking-[0.4em] uppercase">Manual de Sobrevivência v12.0 // Acesso Irrestrito</p>
                 </div>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-2 bg-zinc-900/60 p-1.5 rounded-lg border border-zinc-800 backdrop-blur-sm">
-                <button onclick="showTab('lore')" id="btn-lore" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded bg-red-600 text-white shadow-lg transition-all hover:scale-105"><i class="fa-solid fa-book-skull mr-2"></i>Lore & Mundo</button>
-                <button onclick="showTab('rules')" id="btn-rules" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-microchip mr-2"></i>Sistema</button>
-                <button onclick="showTab('psych')" id="btn-psych" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-brain mr-2"></i>Psicologia</button>
-                <button onclick="showTab('sheet')" id="btn-sheet" class="tab-btn px-5 py-2 text-[10px] font-bold uppercase rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"><i class="fa-solid fa-id-card mr-2"></i>Dossiê</button>
-            </div>
-
-            <div id="audio-visualizer" class="hidden flex items-end gap-1 h-6 px-3 py-1 rounded bg-black border border-zinc-800">
-                <div class="audio-bar" style="animation-delay: 0.1s"></div>
-                <div class="audio-bar" style="animation-delay: 0.3s"></div>
-                <div class="audio-bar" style="animation-delay: 0.5s"></div>
-                <div class="audio-bar" style="animation-delay: 0.2s"></div>
-                <span class="ml-2 text-[9px] font-mono text-zinc-500 self-center">AUDIO: ON</span>
-            </div>
+            <nav class="flex flex-wrap justify-center gap-2">
+                <button onclick="switchTab('creation')" class="nav-btn px-6 py-3 bg-zinc-900 border border-zinc-700 hover:border-red-600 hover:bg-red-900/20 text-xs font-bold uppercase tracking-widest transition-all rounded text-zinc-300 hover:text-white shadow-lg">01. Ficha & Naipes</button>
+                <button onclick="switchTab('mechanics')" class="nav-btn px-6 py-3 bg-zinc-900 border border-zinc-700 hover:border-red-600 hover:bg-red-900/20 text-xs font-bold uppercase tracking-widest transition-all rounded text-zinc-300 hover:text-white shadow-lg">02. Regras & Stress</button>
+                <button onclick="switchTab('professions')" class="nav-btn px-6 py-3 bg-zinc-900 border border-zinc-700 hover:border-red-600 hover:bg-red-900/20 text-xs font-bold uppercase tracking-widest transition-all rounded text-zinc-300 hover:text-white shadow-lg">03. Profissões</button>
+                <button onclick="switchTab('personalities')" class="nav-btn px-6 py-3 bg-zinc-900 border border-zinc-700 hover:border-red-600 hover:bg-red-900/20 text-xs font-bold uppercase tracking-widest transition-all rounded text-zinc-300 hover:text-white shadow-lg">04. Personalidades</button>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+    <main class="max-w-7xl mx-auto p-6 relative z-10">
 
-        <div id="lore" class="tab-content active space-y-16">
+        <!-- TAB 01: CRIAÇÃO & NAIPES -->
+        <div id="creation" class="tab-content active space-y-12">
             
-            <header class="grid md:grid-cols-2 gap-10 items-center">
-                <div class="space-y-6">
-                    <div class="inline-block px-3 py-1 bg-red-900/30 border border-red-600 rounded text-[10px] font-bold text-red-500 uppercase tracking-widest">Arquivo Confidencial #001</div>
-                    <h2 class="text-5xl md:text-7xl font-black uppercase italic text-white leading-none">O Estado <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-900 flicker">Liminar</span></h2>
-                    <p class="text-zinc-400 text-sm leading-relaxed text-justify border-l-4 border-zinc-800 pl-4">
-                        A Borderland não é um local geográfico. É uma dimensão metafísica coletiva, um "servidor" para consciências humanas que estão entre a vida e a morte biológica. 
-                        Após o Grande Desastre de Tóquio (Meteorito), as vítimas em estado crítico foram "imigradas" para cá.
-                        <br><br>
-                        Neste mundo, as leis da física são secundárias. A lei primária é a <b>Vontade de Viver</b>. O sistema quantifica essa vontade através do Visto. 
-                        Se você desistir, ou se seu tempo acabar, o sistema desconecta sua consciência, resultando em morte cerebral imediata no mundo real.
-                    </p>
-                </div>
-                <div class="bg-black p-6 rounded-2xl border border-zinc-800 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
-                    <h3 class="text-xl font-bold text-white uppercase mb-6 text-center"><i class="fa-solid fa-layer-group text-red-600 mr-2"></i>A Hierarquia da Morte</h3>
-                    <div class="space-y-4 text-xs">
-                        <div class="flex gap-4 items-start">
-                            <div class="bg-blue-900/20 p-2 rounded text-blue-500 font-bold">01</div>
-                            <div>
-                                <strong class="text-blue-400 block uppercase">Jogadores (Imigrantes)</strong>
-                                <p class="text-zinc-500">A base da pirâmide. Vítimas confusas. Objetivo: Renovar o visto e coletar todas as cartas para voltar para casa.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <div class="bg-red-900/20 p-2 rounded text-red-500 font-bold">02</div>
-                            <div>
-                                <strong class="text-red-400 block uppercase">Dealers (Traidores)</strong>
-                                <p class="text-zinc-500">Jogadores que fizeram um pacto. Eles montam os jogos. Eles ganham visto quando jogadores morrem. Eles são o inimigo invisível.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <div class="bg-yellow-900/20 p-2 rounded text-yellow-500 font-bold">03</div>
-                            <div>
-                                <strong class="text-yellow-400 block uppercase">Cidadãos (Mestres)</strong>
-                                <p class="text-zinc-500">Ex-humanos que venceram o jogo e escolheram ficar. Eles são os "Reis" e "Rainhas". Eles desenham os jogos impossíveis da Segunda Fase.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <section class="space-y-8">
-                <div class="flex items-center gap-4">
-                    <div class="h-1 flex-1 bg-zinc-800"></div>
-                    <h3 class="text-3xl font-black uppercase text-white italic">A Semiótica dos Naipes</h3>
-                    <div class="h-1 flex-1 bg-zinc-800"></div>
-                </div>
-                
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-blue-600 hover:bg-zinc-900 transition-all group">
-                        <i class="fa-solid fa-shield-halved text-4xl text-blue-600 mb-4 group-hover:scale-110 transition-transform"></i>
-                        <h4 class="text-lg font-bold text-white uppercase mb-2">Espadas (Spades)</h4>
-                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">VIGOR • FÍSICO • COMBATE</p>
-                        <p class="text-xs text-zinc-300 leading-relaxed">
-                            A arena é um predador. Jogos de Espadas testam se seu corpo merece continuar funcionando. São maratonas mortais, lutas contra feras ou duelos armados.
-                            <br><br><span class="text-blue-500">Ex: "Pega-Pega" em um prédio cheio de explosivos.</span>
-                        </p>
-                    </div>
-                    
-                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-yellow-500 hover:bg-zinc-900 transition-all group">
-                        <i class="fa-solid fa-brain text-4xl text-yellow-500 mb-4 group-hover:scale-110 transition-transform"></i>
-                        <h4 class="text-lg font-bold text-white uppercase mb-2">Ouros (Diamonds)</h4>
-                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">INTELECTO • LÓGICA • ESTRATÉGIA</p>
-                        <p class="text-xs text-zinc-300 leading-relaxed">
-                            A arena é um quebra-cabeça. Jogos de Ouros testam sua capacidade de pensar sob pressão. Matemática, física, probabilidade. Sempre existe uma solução teórica perfeita.
-                            <br><br><span class="text-yellow-500">Ex: Resolver uma equação enquanto a sala enche de água fervente.</span>
-                        </p>
-                    </div>
-
-                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-green-600 hover:bg-zinc-900 transition-all group">
-                        <i class="fa-solid fa-users text-4xl text-green-600 mb-4 group-hover:scale-110 transition-transform"></i>
-                        <h4 class="text-lg font-bold text-white uppercase mb-2">Paus (Clubs)</h4>
-                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">UNIDADE • EQUILÍBRIO • GRUPO</p>
-                        <p class="text-xs text-zinc-300 leading-relaxed">
-                            A arena é um contrato social. Jogos de Paus exigem cooperação. Vocês vivem juntos ou morrem juntos. O egoísmo é punido com a morte de todo o time.
-                            <br><br><span class="text-green-500">Ex: Um time deve correr amarrado um ao outro por um campo minado.</span>
-                        </p>
-                    </div>
-
-                    <div class="bg-zinc-900/50 p-6 rounded-xl border-t-4 border-red-600 hover:bg-zinc-900 transition-all group">
-                        <i class="fa-solid fa-heart-crack text-4xl text-red-600 mb-4 animate-pulse"></i>
-                        <h4 class="text-lg font-bold text-white uppercase mb-2">Copas (Hearts)</h4>
-                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-3">PSIQUE • TRAIÇÃO • SACRIFÍCIO</p>
-                        <p class="text-xs text-zinc-300 leading-relaxed">
-                            A arena é um espelho. O naipe mais cruel. Projetado para destruir a confiança. O jogo força você a matar quem você ama para sobreviver. Não há inimigos, apenas amigos.
-                            <br><br><span class="text-red-500">Ex: 4 pessoas entram, apenas 1 pode sair viva.</span>
-                        </p>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div id="rules" class="tab-content space-y-12">
-            
-            <div class="bg-black p-8 rounded-2xl border border-red-900/50 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                <div class="relative z-10">
-                    <i class="fa-solid fa-eye-slash text-6xl text-red-600 animate-pulse"></i>
-                </div>
-                <div class="relative z-10 space-y-4 text-center md:text-left">
-                    <h2 class="text-3xl font-black uppercase text-red-500">Protocolo "Blind Roll" (Rolagem Cega)</h2>
-                    <p class="text-zinc-300 text-sm leading-relaxed max-w-2xl">
-                        Neste RPG, a <b>INCERTEZA</b> é a mecânica principal. Você nunca vê os números do dado. Na vida real, você não sabe se "passou no teste de pular", você apenas pula e descobre se quebrou a perna ao aterrissar.
-                        <br><br>
-                        <span class="text-white font-bold bg-red-900/30 px-2 py-1 rounded">COMO JOGAR:</span> O jogador declara a ação e seu Atributo. O Mestre rola secretamente (d100). O Mestre narra a consequência visceral.
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-10">
-                <article class="space-y-6">
-                    <h3 class="text-xl font-bold text-white uppercase border-b border-zinc-800 pb-2"><i class="fa-solid fa-dice mr-2 text-zinc-500"></i>O Motor d100 (Roll-Under)</h3>
-                    <ul class="space-y-4 text-xs text-zinc-400">
-                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-white">
-                            <strong class="text-white block text-sm mb-1">A Regra de Ouro</strong>
-                            Para ter sucesso, o resultado do dado deve ser <b>IGUAL ou MENOR</b> que seu Atributo (Vigor, Intelecto, etc.).
-                            <br><i>Ex: Se você tem 40 de Vigor, você precisa tirar 40 ou menos no d100.</i>
-                        </li>
-                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-red-500">
-                            <strong class="text-red-400 block text-sm mb-1">Penalidade da Carta</strong>
-                            O Nível da Carta (1 a 10) define a dificuldade.
-                            <br><span class="font-mono text-white">PENALIDADE = NÍVEL DA CARTA x 5</span>
-                            <br><i>Ex: Um jogo "4 de Espadas" aplica -20% em todos os seus testes.</i>
-                        </li>
-                        <li class="bg-zinc-900 p-4 rounded border-l-2 border-yellow-500">
-                            <strong class="text-yellow-400 block text-sm mb-1">Críticos & Duplos</strong>
-                            Números iguais (11, 22, 33...) são eventos críticos.
-                            <br>• Abaixo do alvo: <b>Sucesso Brilhante</b> (ganha tempo/vantagem).
-                            <br>• Acima do alvo: <b>Falha Catastrófica</b> (Gera Teste de Pânico).
-                        </li>
-                    </ul>
-                </article>
-
-                <article class="space-y-6">
-                    <h3 class="text-xl font-bold text-white uppercase border-b border-zinc-800 pb-2"><i class="fa-solid fa-brain mr-2 text-zinc-500"></i>Ciclo de Colapso (Stress)</h3>
-                    <p class="text-xs text-zinc-500">O Stress nunca zera sozinho. Ele acumula até te matar.</p>
-                    
-                    <div class="overflow-hidden rounded-xl border border-zinc-800">
-                        <table class="w-full text-left text-[10px] mono uppercase">
-                            <thead class="bg-zinc-950 text-zinc-400">
-                                <tr>
-                                    <th class="p-3">Nível de Stress</th>
-                                    <th class="p-3">Efeito Fisiológico</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-800 text-zinc-300 bg-black">
-                                <tr>
-                                    <td class="p-3 font-bold">00 - 09</td>
-                                    <td class="p-3 text-blue-400">ANSIEDADE LEVE<br><span class="text-zinc-600 normal-case">Tremores nas mãos. Suor frio.</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="p-3 font-bold">10 - 19</td>
-                                    <td class="p-3 text-yellow-500">DESVANTAGEM MENTAL<br><span class="text-zinc-600 normal-case">Dificuldade de fala. Visão de túnel. -10% em Intelecto.</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="p-3 font-bold">20 - 24</td>
-                                    <td class="p-3 text-orange-500">PARANOIA AGUDA<br><span class="text-zinc-600 normal-case">O jogador deve fugir ou atacar o aliado mais próximo.</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="p-3 font-bold text-red-600">25+ (MÁX)</td>
-                                    <td class="p-3 text-red-600 font-black blink">COLAPSO FATAL<br><span class="text-red-900 normal-case">Parada cardíaca induzida pelo medo. Morte.</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </article>
-            </div>
-        </div>
-
-        <div id="psych" class="tab-content space-y-12">
-            <header class="text-center">
-                <h2 class="text-4xl font-black uppercase italic text-white mb-2">Quem você era <span class="text-red-600">Antes?</span></h2>
-                <p class="text-xs text-zinc-500 max-w-2xl mx-auto">
-                    Na Borderland, seu passado é sua única ferramenta. Sua profissão define suas habilidades técnicas (bônus). Sua Natureza define seus vícios e como você quebra sob pressão.
+            <div class="border-l-4 border-red-600 pl-8 py-2 bg-gradient-to-r from-red-900/10 to-transparent">
+                <h2 class="text-4xl font-black uppercase text-white mb-4">Algoritmo de Seleção Genética</h2>
+                <p class="text-zinc-300 text-lg max-w-4xl text-justify-custom">
+                    Em Borderland, a mediocridade é uma sentença de morte. O sistema não permite a criação manual de atributos para evitar o viés da esperança. Utilizamos o <span class="text-red-500 font-bold">Protocolo de Triangulação (5#d50)</span>, um método estatístico brutal desenhado para simular a injustiça da seleção natural. Você não escolhe quem você é; você descobre o que sobrou de você.
                 </p>
-            </header>
+            </div>
 
-            <div class="grid lg:grid-cols-2 gap-10 h-[600px]">
-                
-                <section class="flex flex-col h-full bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-inner">
-                    <div class="p-4 bg-black border-b border-zinc-800 flex justify-between items-center">
-                        <h3 class="font-bold text-white uppercase text-xs tracking-widest"><i class="fa-solid fa-briefcase mr-2"></i>Catálogo de Ofícios</h3>
-                        <span class="text-[9px] bg-zinc-800 px-2 py-1 rounded text-zinc-400">30+ ARQUIVOS</span>
+            <div class="grid xl:grid-cols-2 gap-12">
+                <!-- Método de Rolagem -->
+                <div class="lore-card p-8 rounded-xl shadow-xl">
+                    <h3 class="text-2xl font-bold text-red-500 mb-6 uppercase border-b border-zinc-800 pb-4"><i class="fa-solid fa-dice mr-3"></i>O Ritual de Calibragem</h3>
+                    <div class="space-y-6 text-zinc-300">
+                        <p class="text-justify-custom">Para gerar seus atributos, siga este procedimento à risca. Qualquer desvio resultará em dados corrompidos.</p>
+                        <ol class="list-decimal list-inside space-y-4 text-sm bg-black/40 p-6 rounded border border-zinc-800 font-mono">
+                            <li class="pl-2 pb-2 border-b border-zinc-800/50"><strong class="text-white">A Amostragem:</strong> Role 5 dados de 50 lados (5d50). Anote os 5 números. Este é o seu "Conjunto Genético A".</li>
+                            <li class="pl-2 pb-2 border-b border-zinc-800/50"><strong class="text-white">A Redundância:</strong> Repita o processo mais duas vezes. Gere o "Conjunto B" e o "Conjunto C". Você terá 3 opções de destino.</li>
+                            <li class="pl-2 pb-2 border-b border-zinc-800/50"><strong class="text-white">A Seleção:</strong> Analise friamente. Escolha APENAS UM conjunto. Os outros dois são descartados.</li>
+                            <li class="pl-2 pb-2 border-b border-zinc-800/50"><strong class="text-red-500">O Expurgo:</strong> Dentro do conjunto escolhido (que tem 5 números), encontre o MENOR valor. Risque-o. Elimine-o. A Borderland não tolera sua maior fraqueza.</li>
+                            <li class="pl-2"><strong class="text-white">A Alocação:</strong> Distribua os 4 números sobreviventes entre Espadas, Ouros, Paus e Copas conforme sua estratégia de sobrevivência.</li>
+                        </ol>
                     </div>
-                    
-                    <div class="overflow-y-auto p-4 space-y-3 custom-scroll flex-1 bg-zinc-950/50">
-                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Militar / Policial</h4><i class="fa-solid fa-gun text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Treinamento de supressão de medo. Ignora testes de Pânico em combate armado.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Bombeiro Civil</h4><i class="fa-solid fa-fire-extinguisher text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Força para arrombamento e resistência extrema a calor/fumaça.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Yakuza / Executor</h4><i class="fa-solid fa-skull text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Intimidação física. +20 em testes de Vigor para causar dor ou medo.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-blue-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-blue-500 font-bold text-xs uppercase">Atleta de Parkour</h4><i class="fa-solid fa-person-running text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Mobilidade urbana. Pode re-rolar qualquer teste de fuga em ambiente vertical.</p>
-                        </div>
+                </div>
 
-                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Médico Cirurgião</h4><i class="fa-solid fa-user-doctor text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Diagnóstico Rápido. Pode usar Intelecto para curar ferimentos leves e estabilizar Stress.</p>
+                <!-- Detalhamento dos Naipes -->
+                <div class="space-y-6">
+                    <!-- Espadas -->
+                    <div class="lore-card p-6 rounded-xl border-l-4 border-blue-600 bg-gradient-to-br from-zinc-900 to-black">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid fa-shield-halved text-2xl text-blue-600"></i>
+                            <h4 class="text-xl font-black text-blue-500 uppercase tracking-widest">Espadas (Spades)</h4>
                         </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Hacker / Dev</h4><i class="fa-solid fa-laptop-code text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Lógica Digital. Manipula qualquer eletrônico da arena. Resolve enigmas 50% mais rápido.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Investidor Financeiro</h4><i class="fa-solid fa-money-bill-trend-up text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Cálculo de Risco. Sabe instintivamente qual opção tem maior probabilidade matemática.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-yellow-500 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-yellow-500 font-bold text-xs uppercase">Eletricista / Mecânico</h4><i class="fa-solid fa-wrench text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Pode consertar ou sabotar maquinário da arena. Entende plantas de prédios.</p>
-                        </div>
-
-                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Político / CEO</h4><i class="fa-solid fa-bullhorn text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Oratória. Em jogos de Paus, concede +10 em testes para todos os aliados ouvintes.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Professor</h4><i class="fa-solid fa-chalkboard-user text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Didática. Pode transferir seu bônus de Intelecto para outro jogador por uma rodada.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-green-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-green-500 font-bold text-xs uppercase">Motorista de Fuga</h4><i class="fa-solid fa-car text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Perícia total em qualquer veículo terrestre. Sincronia perfeita com passageiros.</p>
-                        </div>
-
-                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Psicólogo Clínico</h4><i class="fa-solid fa-couch text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Empatia. Recupera o dobro de Stress ao descansar. Pode acalmar aliados em Pânico.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Vigarista / Golpista</h4><i class="fa-solid fa-masks-theater text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Leitura Fria. Detecta mentiras e intenções ocultas automaticamente 1x por jogo.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-red-600 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-red-600 font-bold text-xs uppercase">Host / Hostess</h4><i class="fa-solid fa-martini-glass text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Manipulação Emocional. Vantagem em testes para seduzir ou enganar NPCs/Dealers.</p>
-                        </div>
-                        <div class="job-card bg-zinc-900 border-l-2 border-purple-500 p-3 rounded hover:bg-zinc-800 transition-colors">
-                            <div class="flex justify-between"><h4 class="text-purple-500 font-bold text-xs uppercase">NEET / Gamer</h4><i class="fa-solid fa-gamepad text-zinc-600 text-xs"></i></div>
-                            <p class="text-[10px] text-zinc-400 mt-1">Meta-Gaming. Entende a "lógica do mestre" e regras ocultas mais rápido que qualquer um.</p>
-                        </div>
+                        <p class="text-sm text-zinc-400 text-justify-custom leading-relaxed">
+                            <strong class="text-white">O Complexo Fisiológico.</strong> Este atributo transcende a mera força muscular. Espadas é a medida da sua viabilidade biológica em um ambiente hostil. Representa a densidade óssea capaz de suportar impactos de quedas, a eficiência mitocondrial para gerar explosão em corridas, a coagulação sanguínea acelerada e a tolerância dos seus nociceptores à dor excruciante. Ter Espadas alto significa que seu corpo é um tanque de guerra biológico, capaz de continuar lutando com costelas quebradas ou pulmões cheios de fumaça. Ter Espadas baixo significa fragilidade: um corte infecciona, um salto quebra seus tornozelos, a fadiga te mata antes do monstro.
+                        </p>
                     </div>
-                </section>
 
-                <section class="flex flex-col h-full bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden shadow-inner">
-                    <h3 class="p-4 bg-black font-bold text-white border-b border-zinc-800 uppercase tracking-widest text-xs">Espectro de Natureza</h3>
-                    <div class="p-4 bg-red-950/30 border-b border-red-900/30 text-[10px] text-red-300 italic mb-2 font-mono flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span><b>REGRA DA VIOLAÇÃO:</b> Agir contra sua natureza = 1 Ponto de Interferência para o Mestre.</span>
+                    <!-- Ouros -->
+                    <div class="lore-card p-6 rounded-xl border-l-4 border-yellow-500 bg-gradient-to-br from-zinc-900 to-black">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid fa-brain text-2xl text-yellow-500"></i>
+                            <h4 class="text-xl font-black text-yellow-500 uppercase tracking-widest">Ouros (Diamonds)</h4>
+                        </div>
+                        <p class="text-sm text-zinc-400 text-justify-custom leading-relaxed">
+                            <strong class="text-white">O Processador Lógico.</strong> Esqueça a erudição acadêmica. Ouros é a velocidade de clock da sua CPU cerebral sob pressão de morte. Representa o raciocínio dedutivo instantâneo, a capacidade de calcular trajetórias balísticas, a compreensão intuitiva de sistemas eletrônicos complexos e a frieza necessária para resolver equações diferenciais enquanto uma sala se enche de ácido. É a inteligência aplicada à sobrevivência prática. Um valor alto permite hackear a realidade do jogo; um valor baixo te torna lento, suscetível a armadilhas óbvias e incapaz de ver os padrões matemáticos que regem a morte na Arena.
+                        </p>
                     </div>
-                    
-                    <div class="overflow-y-auto p-4 space-y-2 custom-scroll flex-1 bg-zinc-950/50">
-                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
-                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Analítico (Frieza) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
-                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
-                                <p>Vê o mundo como números. Sacrifica um para salvar dez sem hesitar.</p>
-                                <p class="text-red-400">✖ Violação: Agir por emoção irracional, pena ou amor.</p>
-                            </div>
-                        </details>
-                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
-                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Covarde (Sobrevivência) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
-                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
-                                <p>O medo é sua arma. Você foge primeiro e pergunta depois. Prioriza a si mesmo.</p>
-                                <p class="text-red-400">✖ Violação: Arriscar a própria vida por um estranho.</p>
-                            </div>
-                        </details>
-                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
-                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Heroico (Mártir) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
-                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
-                                <p>Complexo de Salvador. Incapaz de deixar alguém para trás, mesmo que seja suicídio.</p>
-                                <p class="text-red-400">✖ Violação: Fugir e deixar alguém morrer.</p>
-                            </div>
-                        </details>
-                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
-                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Sádico (Prazer) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
-                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
-                                <p>A adrenalina e a dor alheia te fazem sentir vivo. Você provoca conflitos.</p>
-                                <p class="text-red-400">✖ Violação: Demonstrar misericórdia genuína ou paz.</p>
-                            </div>
-                        </details>
-                        <details class="bg-black p-3 rounded border border-zinc-800 group open:border-red-900/50 transition-colors">
-                            <summary class="text-xs font-bold text-white cursor-pointer uppercase flex justify-between items-center">Niilista (Vazio) <i class="fa-solid fa-caret-down text-zinc-600 group-open:text-red-500"></i></summary>
-                            <div class="text-[10px] text-zinc-400 mt-2 pl-3 border-l-2 border-red-600 space-y-1">
-                                <p>Não vê sentido em viver ou morrer. Age de forma imprudente e aleatória.</p>
-                                <p class="text-red-400">✖ Violação: Demonstrar esperança no futuro ou medo da morte.</p>
-                            </div>
-                        </details>
+
+                    <!-- Paus -->
+                    <div class="lore-card p-6 rounded-xl border-l-4 border-green-600 bg-gradient-to-br from-zinc-900 to-black">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid fa-users text-2xl text-green-600"></i>
+                            <h4 class="text-xl font-black text-green-500 uppercase tracking-widest">Paus (Clubs)</h4>
+                        </div>
+                        <p class="text-sm text-zinc-400 text-justify-custom leading-relaxed">
+                            <strong class="text-white">A Sinapse Social.</strong> Na Borderland, o lobo solitário morre. Paus mede a sua capacidade de criar e manter vínculos simbióticos instantâneos. Não é sobre ser simpático; é sobre liderança tática, coordenação motora coletiva e inteligência emocional de grupo. Representa a habilidade de sincronizar seus movimentos com um parceiro sem precisar falar, de inspirar lealdade fanática ou de intimidar um grupo hostil apenas com postura corporal. Um valor alto em Paus transforma um grupo de estranhos em uma unidade militar coesa; um valor baixo te torna um pária, o elo fraco que descoordena a equipe e causa a morte de todos.
+                        </p>
                     </div>
-                </section>
+
+                    <!-- Copas -->
+                    <div class="lore-card p-6 rounded-xl border-l-4 border-red-600 bg-gradient-to-br from-zinc-900 to-black">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid fa-heart-crack text-2xl text-red-600"></i>
+                            <h4 class="text-xl font-black text-red-600 uppercase tracking-widest">Copas (Hearts)</h4>
+                        </div>
+                        <p class="text-sm text-zinc-400 text-justify-custom leading-relaxed">
+                            <strong class="text-white">A Blindagem Psicológica.</strong> O atributo mais volátil e perigoso. Copas é a resistência da sua sanidade contra o abismo do horror cósmico. É a capacidade de olhar para a carnificina e não piscar, de compartimentalizar o trauma e continuar funcionando. Além disso, rege a manipulação: a habilidade de ler microexpressões faciais para detectar mentiras, de atuar para enganar inimigos e de seduzir para obter vantagens. Um valor alto te torna uma fortaleza mental impenetrável; um valor baixo te transforma em uma bomba-relógio prestes a colapsar em pânico catatônico ou paranoia homicida.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="sheet" class="tab-content space-y-8">
-            <div class="bg-zinc-900/90 p-8 rounded-3xl border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden backdrop-blur-sm">
+        <!-- TAB 02: REGRAS E MECÂNICAS DETALHADAS -->
+        <div id="mechanics" class="tab-content space-y-12">
+            
+            <div class="grid lg:grid-cols-2 gap-12">
                 
-                <i class="fa-solid fa-fingerprint absolute -right-20 -bottom-20 text-[20rem] text-white opacity-5 pointer-events-none rotate-12"></i>
-
-                <div class="grid lg:grid-cols-12 gap-8 relative z-10">
-                    
-                    <div class="lg:col-span-4 space-y-6">
+                <!-- Coluna 1: O Motor do Jogo -->
+                <div class="space-y-8">
+                    <section class="lore-card p-8 rounded-xl">
+                        <h3 class="text-2xl font-black text-white mb-6 border-b border-zinc-700 pb-2 uppercase">A Mecânica da Incerteza</h3>
                         
-                        <div class="relative w-full aspect-[3/4] bg-black rounded-xl border-2 border-dashed border-zinc-700 hover:border-red-600 transition-all cursor-pointer overflow-hidden group shadow-lg" onclick="triggerPhotoUpload()">
-                            <input type="file" id="photo-input" class="hidden" accept="image/*" onchange="loadPhoto(event)">
-                            <img id="char-photo" class="hidden w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity">
-                            <div id="photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 group-hover:text-red-500 transition-colors">
-                                <i class="fa-solid fa-camera text-4xl mb-2"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Carregar Biometria</span>
-                            </div>
-                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/10 to-transparent h-2 w-full animate-[scan_2s_linear_infinite] pointer-events-none"></div>
+                        <div class="mb-8">
+                            <h4 class="text-lg font-bold text-red-500 mb-2">1. O Sistema d100 (Roll-Under)</h4>
+                            <p class="text-sm text-zinc-400 text-justify-custom mb-3">
+                                A competência é medida pela sua capacidade de se manter dentro dos seus limites. Para realizar qualquer teste de Atributo ou Perícia, você rola um d100. O resultado deve ser <strong>IGUAL ou MENOR</strong> que o valor do seu atributo. 
+                            </p>
+                            <p class="text-sm text-zinc-400 text-justify-custom bg-black/30 p-4 rounded border-l-2 border-red-600">
+                                <strong>Exemplo Prático:</strong> Se você tem 40 de Vigor (Espadas) e tenta pular um abismo, você precisa tirar entre 01 e 40 no dado. Se tirar 41 ou mais, você falha. Quanto maior seu atributo, maior sua margem de segurança estatística. Tirar 01 é um Sucesso Crítico. Tirar 100 é uma Falha Catastrófica.
+                            </p>
                         </div>
 
+                        <div class="mb-8">
+                            <h4 class="text-lg font-bold text-blue-500 mb-2">2. O Dado do Destino (d20)</h4>
+                            <p class="text-sm text-zinc-400 text-justify-custom">
+                                Enquanto o d100 mede sua habilidade, o d20 mede a intervenção do caos. Ele é usado exclusivamente para Iniciativa e "Sorte Pura" (situações onde nenhuma habilidade humana pode influenciar o resultado, como escolher qual fio cortar em uma bomba desconhecida).
+                            </p>
+                            <ul class="mt-2 space-y-2 text-sm text-zinc-400">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-skull text-red-500"></i> <strong>1 Natural:</strong> O universo conspira ativamente contra você. A arma emperra, o chão cede, a luz acaba.</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-clover text-green-500"></i> <strong>20 Natural:</strong> Um milagre estatístico. A bala atinge a fivela do cinto, você encontra um item raro no lixo.</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="lore-card p-8 rounded-xl border border-red-900/30">
+                        <h3 class="text-2xl font-black text-white mb-6 border-b border-zinc-700 pb-2 uppercase">Protocolo de Trauma Físico</h3>
+                        <p class="text-sm text-zinc-300 mb-4 text-justify-custom">
+                            Esqueça barras de HP abstratas. Em Borderland, o dano degrada sua capacidade funcional. Todo dano sofrido é subtraído diretamente do seu valor máximo de <strong>ESPADAS</strong> até que você seja curado.
+                        </p>
                         <div class="space-y-4">
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Nome de Registro</label>
-                                <input type="text" id="char-name" class="input-cyber w-full p-2 text-lg font-bold uppercase rounded" placeholder="NOME COMPLETO...">
+                            <div class="bg-zinc-900/80 p-4 rounded border-l-4 border-yellow-500">
+                                <strong class="text-yellow-500 text-sm uppercase block mb-1">Ferimento Superficial (1 a 10 de Dano)</strong>
+                                <p class="text-xs text-zinc-400 text-justify-custom">Cortes, hematomas, contusões. Dói, mas o corpo compensa com adrenalina. Você funciona, mas sua margem de erro em testes físicos diminui.</p>
                             </div>
-
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Profissão Anterior</label>
-                                <select id="char-job" onchange="updateJobInfo()" class="input-cyber w-full p-2 text-xs font-bold uppercase rounded cursor-pointer">
-                                    <option value="">Selecione...</option>
-                                    <optgroup label="ESPADAS (FÍSICO)">
-                                        <option value="mil" data-bonus="spades" data-skill="Militar: Ignora penalidade de Pânico em combate.">Militar / Policial</option>
-                                        <option value="atl" data-bonus="spades" data-skill="Atleta: Rerola 1 teste de Fuga por sessão.">Atleta Profissional</option>
-                                        <option value="bom" data-bonus="spades" data-skill="Bombeiro: Vantagem em força bruta.">Bombeiro Civil</option>
-                                        <option value="yak" data-bonus="spades" data-skill="Yakuza: +20 em testes de intimidação física.">Yakuza</option>
-                                    </optgroup>
-                                    <optgroup label="OUROS (LÓGICA)">
-                                        <option value="med" data-bonus="diamonds" data-skill="Médico: Cura Stress de aliados com Lógica.">Médico Cirurgião</option>
-                                        <option value="hac" data-bonus="diamonds" data-skill="Hacker: Manipula eletrônicos da arena.">Hacker / Dev</option>
-                                        <option value="eng" data-bonus="diamonds" data-skill="Engenheiro: Detecta falhas estruturais.">Engenheiro Civil</option>
-                                        <option value="inv" data-bonus="diamonds" data-skill="Investidor: Calcula probabilidades de risco.">Investidor</option>
-                                    </optgroup>
-                                    <optgroup label="PAUS (EQUILÍBRIO)">
-                                        <option value="pol" data-bonus="clubs" data-skill="Líder: +10 em testes de Unidade para o grupo.">Político / Líder</option>
-                                        <option value="mot" data-bonus="clubs" data-skill="Motorista: Perito total em veículos.">Motorista</option>
-                                        <option value="pro" data-bonus="clubs" data-skill="Professor: Transfere bônus de Intelecto a aliado.">Professor</option>
-                                    </optgroup>
-                                    <optgroup label="COPAS (PSIQUE)">
-                                        <option value="psi" data-bonus="hearts" data-skill="Psicólogo: Recupera dobro de Stress.">Psicólogo Clínico</option>
-                                        <option value="vig" data-bonus="hearts" data-skill="Vigarista: Detecta mentiras 1x por jogo.">Vigarista</option>
-                                        <option value="gam" data-bonus="hearts" data-skill="Gamer: Identifica regras ocultas.">NEET / Gamer</option>
-                                        <option value="hos" data-bonus="hearts" data-skill="Host: Vantagem em manipulação social.">Host / Hostess</option>
-                                    </optgroup>
-                                </select>
-                                <div id="job-desc-box" class="mt-2 p-2 bg-red-900/10 border-l-2 border-red-600 text-[9px] text-zinc-400 italic min-h-[40px] font-mono">
-                                    Habilidade passiva aparecerá aqui...
-                                </div>
+                            <div class="bg-zinc-900/80 p-4 rounded border-l-4 border-orange-600">
+                                <strong class="text-orange-600 text-sm uppercase block mb-1">Ferimento Grave (Dano > 50% de Espadas)</strong>
+                                <p class="text-xs text-zinc-400 text-justify-custom">Ossos fraturados, hemorragia arterial, concussão. Você está quebrado. Penalidade de -20 em todas as ações físicas. Movimento reduzido à metade.</p>
                             </div>
-
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Natureza (Vício)</label>
-                                <select id="char-nature" class="input-cyber w-full p-2 text-xs font-bold uppercase rounded">
-                                    <option>Analítico</option>
-                                    <option>Covarde</option>
-                                    <option>Heroico</option>
-                                    <option>Sádico</option>
-                                    <option>Niilista</option>
-                                    <option>Diplomata</option>
-                                    <option>Instintivo</option>
-                                    <option>Controlador</option>
-                                    <option>Vingativo</option>
-                                    <option>Devoto</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-[10px] font-black uppercase text-red-600 tracking-widest mb-1 block">Trauma / Passado</label>
-                                <textarea id="char-bio" class="input-cyber w-full p-3 rounded text-xs h-24 resize-none" placeholder="O que você deixou para trás?"></textarea>
+                            <div class="bg-zinc-900/80 p-4 rounded border-l-4 border-red-600 animate-pulse">
+                                <strong class="text-red-600 text-sm uppercase block mb-1">Colapso Fisiológico (Espadas = 0)</strong>
+                                <p class="text-xs text-zinc-400 text-justify-custom">Choque hipovolêmico ou traumático. Você cai inconsciente. Se não receber estabilização (Teste de Ouros/Medicina) em 3 turnos, ocorre a morte biológica.</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="lg:col-span-8 space-y-8">
-                        
-                        <div class="bg-black p-8 rounded-2xl border border-zinc-800 text-center relative overflow-hidden group">
-                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                            
-                            <h3 class="relative z-10 text-xs font-black uppercase text-zinc-500 mb-6 tracking-[0.3em]">
-                                <i class="fa-solid fa-dice-d20 mr-2"></i>Interface de Ação (Rolagem Cega)
-                            </h3>
-                            
-                            <div class="relative z-10 flex flex-col md:flex-row gap-6 justify-center items-end">
-                                <div class="w-full md:w-auto">
-                                    <label class="text-[10px] text-zinc-400 uppercase block mb-2 font-bold">Valor do Atributo</label>
-                                    <input type="number" id="roll-attr" value="40" class="input-cyber w-full md:w-32 text-center text-3xl text-white font-black p-3 rounded-xl border-2 border-zinc-700 focus:border-red-600">
-                                </div>
-                                <button onclick="blindRoll()" class="w-full md:w-auto bg-red-700 hover:bg-red-600 text-white font-black uppercase italic py-4 px-10 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 transform hover:-translate-y-1">
-                                    TRANSMITIR AÇÃO
-                                </button>
-                            </div>
-                            
-                            <div id="roll-feedback-container" class="mt-6 h-8 flex items-center justify-center">
-                                <div id="roll-feedback" class="text-xs font-bold uppercase tracking-widest text-zinc-600 opacity-0 transition-all duration-300">
-                                    Aguardando Input...
-                                </div>
-                            </div>
-                            <p class="text-[9px] text-zinc-600 mt-2 italic relative z-10">Nota: O resultado é oculto. Informe o valor ao Mestre e descreva sua ação.</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-blue-600 hover:bg-zinc-800 transition-colors">
-                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-blue-500 tracking-widest">Vigor</span><i class="fa-solid fa-shield text-blue-900"></i></div>
-                                <input type="number" id="attr-spades" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
-                            </div>
-                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-yellow-500 hover:bg-zinc-800 transition-colors">
-                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-yellow-500 tracking-widest">Intelecto</span><i class="fa-solid fa-brain text-yellow-900"></i></div>
-                                <input type="number" id="attr-diamonds" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
-                            </div>
-                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-red-600 hover:bg-zinc-800 transition-colors">
-                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-red-500 tracking-widest">Psique</span><i class="fa-solid fa-heart-crack text-red-900"></i></div>
-                                <input type="number" id="attr-hearts" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
-                            </div>
-                            <div class="bg-zinc-900/60 p-4 rounded-xl border-t-4 border-green-600 hover:bg-zinc-800 transition-colors">
-                                <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase text-green-500 tracking-widest">Unidade</span><i class="fa-solid fa-handshake text-green-900"></i></div>
-                                <input type="number" id="attr-clubs" value="30" class="w-full bg-transparent text-4xl font-black text-white text-center outline-none">
-                            </div>
-                        </div>
-
-                        <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-8 shadow-inner">
-                            <div>
-                                <div class="flex justify-between items-end mb-3"><span class="text-xs font-black uppercase text-zinc-500"><i class="fa-solid fa-clock mr-2"></i>Dias de Visto</span><span id="txt-visa" class="text-3xl font-black text-red-600 mono drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]">3 DIAS</span></div>
-                                <input type="range" id="rng-visa" min="0" max="15" value="3" class="w-full accent-red-600 bg-zinc-800 h-3 rounded-lg appearance-none cursor-pointer" oninput="updateBars()">
-                                <div class="flex justify-between text-[8px] text-zinc-600 uppercase mt-1 px-1"><span>Morte Imediata</span><span>Seguro</span></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-end mb-3"><span class="text-xs font-black uppercase text-zinc-500"><i class="fa-solid fa-bolt mr-2"></i>Carga de Stress</span><span id="txt-stress" class="text-3xl font-black text-white mono">0 / 20</span></div>
-                                <div class="h-4 w-full bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800"><div id="bar-stress" class="h-full bg-zinc-500 w-0 transition-all duration-300 relative"></div></div>
-                                <input type="range" id="rng-stress" min="0" max="25" value="0" class="w-full mt-4 accent-zinc-500 h-1 bg-transparent appearance-none cursor-pointer" oninput="updateBars()">
-                                <p id="panic-msg" class="text-center text-red-500 font-bold text-xs mt-2 hidden animate-pulse"><i class="fa-solid fa-triangle-exclamation mr-1"></i> LIMIAR DE PÂNICO ATINGIDO</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4 pt-4 border-t border-zinc-800">
-                            <button onclick="downloadSheet()" class="flex-1 bg-zinc-900 hover:bg-red-900/30 text-zinc-300 hover:text-white font-bold uppercase py-3 rounded-lg transition-all border border-zinc-800 hover:border-red-600"><i class="fa-solid fa-download mr-2"></i> Salvar Dossiê</button>
-                            <button onclick="uploadSheet()" class="px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all border border-zinc-800"><i class="fa-solid fa-upload"></i></button>
-                        </div>
-
-                    </div>
+                    </section>
                 </div>
+
+                <!-- Coluna 2: Stress e Psicologia -->
+                <div class="space-y-8">
+                    <section class="lore-card p-8 rounded-xl border border-red-600/20 bg-gradient-to-b from-zinc-900 to-black">
+                        <div class="flex items-center gap-4 mb-6">
+                            <i class="fa-solid fa-brain text-4xl text-red-600"></i>
+                            <h3 class="text-2xl font-black text-red-500 uppercase">O Ciclo de Colapso (Stress)</h3>
+                        </div>
+                        <p class="text-sm text-zinc-400 mb-6 text-justify-custom">
+                            A mente quebra antes do corpo. O Stress (medido em uma barra de 0 a 25) é a mecânica mais letal do jogo. Ele nunca zera sozinho com o tempo; ele apenas se acumula como radiação. Cada horror visto, cada amigo morto, cada quase-morte adiciona pontos.
+                        </p>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-center justify-between p-3 bg-zinc-900 rounded border border-zinc-800">
+                                <div class="w-24 font-mono text-zinc-500">00 - 09</div>
+                                <div class="flex-1 px-4 text-sm text-blue-400 font-bold uppercase">Ansiedade Leve</div>
+                                <div class="text-xs text-zinc-500 w-32 text-right">Tremores, Suor Frio.</div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-zinc-900 rounded border border-zinc-800">
+                                <div class="w-24 font-mono text-zinc-500">10 - 19</div>
+                                <div class="flex-1 px-4 text-sm text-yellow-500 font-bold uppercase">Desvantagem Mental</div>
+                                <div class="text-xs text-zinc-500 w-32 text-right text-justify-custom">-10 em testes de Lógica (Ouros). Visão de túnel.</div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-zinc-900 rounded border border-orange-900/50">
+                                <div class="w-24 font-mono text-orange-500 font-bold">20 - 24</div>
+                                <div class="flex-1 px-4 text-sm text-orange-500 font-bold uppercase">Paranoia Aguda</div>
+                                <div class="text-xs text-zinc-500 w-32 text-right text-justify-custom">O jogador vê inimigos onde não existem. Pode atacar aliados.</div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-red-950/30 rounded border border-red-600 animate-pulse">
+                                <div class="w-24 font-mono text-red-600 font-black">25 (MAX)</div>
+                                <div class="flex-1 px-4 text-sm text-red-600 font-black uppercase">COLAPSO FATAL</div>
+                                <div class="text-xs text-red-400 w-32 text-right text-justify-custom">Parada Cardíaca induzida por catecolaminas. Morte.</div>
+                            </div>
+                        </div>
+
+                        <h4 class="font-bold text-white mb-4 uppercase text-sm tracking-widest border-l-4 border-green-500 pl-3">Protocolos de Recuperação Psicológica</h4>
+                        <div class="grid gap-3">
+                            <div class="bg-zinc-900/50 p-3 rounded text-sm text-zinc-400 text-justify-custom">
+                                <strong class="text-green-500 block uppercase text-xs mb-1">Descanso Longo (Sono REM):</strong>
+                                Dormir 6+ horas em local seguro recupera 1d10 de Stress. Exige vigília. Se acordado por perigo, não recupera nada.
+                            </div>
+                            <div class="bg-zinc-900/50 p-3 rounded text-sm text-zinc-400 text-justify-custom">
+                                <strong class="text-green-500 block uppercase text-xs mb-1">Consumíveis (Vícios):</strong>
+                                Cigarros, álcool, chocolate ou drogas recuperam 1d4 de Stress instantaneamente. O uso excessivo gera dependência (penalidade se não consumir).
+                            </div>
+                            <div class="bg-zinc-900/50 p-3 rounded text-sm text-zinc-400 text-justify-custom">
+                                <strong class="text-green-500 block uppercase text-xs mb-1">Vínculo Humano (Roleplay):</strong>
+                                Uma cena de interação profunda, desabafo ou intimidade emocional com outro jogador recupera 5 pontos fixos para ambos. A humanidade é a cura.
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 03: PROFISSÕES (EXPANDIDO) -->
+        <div id="professions" class="tab-content">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-black uppercase text-white title-glow">Catálogo de Ofícios</h2>
+                    <p class="text-zinc-500 text-xs mt-2 max-w-2xl text-justify-custom">
+                        Sua vida anterior moldou suas sinapses e músculos. Escolha uma profissão. Ela concede +10 no Atributo base e 3 Perícias Especiais. <span class="text-red-500">Atenção:</span> Habilidades de "resposta automática" foram removidas pelo Sistema. A Borderland exige que VOCÊ pense, não sua ficha.
+                    </p>
+                </div>
+                <input type="text" id="jobSearch" onkeyup="filterJobs()" placeholder="FILTRAR DADOS..." class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded text-xs font-mono uppercase focus:border-red-600 outline-none w-full md:w-64 shadow-inner">
+            </div>
+
+            <div id="jobList" class="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
+                <!-- Javascript irá popular esta área com os textos massivos -->
+            </div>
+        </div>
+
+        <!-- TAB 04: PERSONALIDADES (EXPANDIDO) -->
+        <div id="personalities" class="tab-content">
+             <div class="border-l-4 border-purple-600 pl-8 py-4 bg-gradient-to-r from-purple-900/10 to-transparent mb-10">
+                <h2 class="text-3xl font-black uppercase text-white mb-2">Psicodinâmica & Trauma</h2>
+                <p class="text-zinc-400 max-w-3xl text-justify-custom text-lg">
+                    Seu arquétipo de personalidade não é apenas "quem você é", é o mecanismo de defesa que sua mente construiu para não se despedaçar. Sempre que sua barra de Stress atingir <span class="text-red-500 font-bold">20</span> ou você presenciar a morte brutal de um aliado, faça um teste de Copas. Uma falha resulta em <strong>Ruptura de Personalidade</strong>: sua mente se reconfigura violentamente para sobreviver, mudando seu arquétipo.
+                </p>
+            </div>
+            
+            <div id="personaList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JS irá popular -->
             </div>
         </div>
 
     </main>
 
+    <footer class="fixed bottom-0 w-full bg-black/90 border-t border-zinc-800 p-2 z-50 backdrop-blur">
+        <div class="max-w-7xl mx-auto flex justify-between items-center text-[10px] mono text-zinc-600 uppercase">
+            <span>Protocolo Gênesis v12.0</span>
+            <span class="animate-pulse text-green-500 font-bold">CONEXÃO NEURAL: ESTÁVEL</span>
+            <span>Borderland Immigrant Database // R.E.Q.U.I.E.M.</span>
+        </div>
+    </footer>
+
     <script>
-        // --- 1. SISTEMA DE LOGIN (GARANTE ÁUDIO) ---
-        function startSystem() {
-            const overlay = document.getElementById('start-overlay');
-            const audio = document.getElementById('bg-music');
-            const visualizer = document.getElementById('audio-visualizer');
-            
-            audio.volume = 0.5;
-            audio.play().then(() => {
-                visualizer.classList.remove('hidden');
-                visualizer.classList.add('flex');
-            }).catch(e => {
-                console.log("Autoplay bloqueado. Clique necessário.");
-            });
-
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-        }
-
-        function toggleMusic() {
-            const audio = document.getElementById('bg-music');
-            const btn = document.getElementById('music-btn');
-            
-            if (audio.paused) {
-                audio.play();
-                btn.innerHTML = '<i class="fa-solid fa-pause"></i> PAUSAR ÁUDIO';
-                btn.classList.remove('animate-pulse');
-            } else {
-                audio.pause();
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> RETOMAR ÁUDIO';
+        // --- DADOS MASSIVOS DAS PROFISSÕES ---
+        const professions = [
+            // GRUPO 1: ESPADAS
+            {
+                name: "Militar de Elite / SpecOps",
+                group: "Espadas",
+                desc: "Você não nasceu soldado, você foi forjado. Anos de condicionamento psicológico removeram sua hesitação humana e substituíram por protocolos de combate. Para você, o mundo é uma grade de alvos, coberturas e vetores de ameaça. A Borderland é apenas mais uma zona de guerra, e você é o predador alfa.",
+                skills: [
+                    { type: "Passiva", name: "Memória Muscular", effect: "Pode recarregar, destravar armas e se mover taticamente sem penalidade, mesmo sob stress intenso." },
+                    { type: "Ativa", name: "Supressão Psicológica", effect: "Dispara uma rajada de contenção que força um inimigo a buscar cobertura, perdendo o turno (Teste Espadas vs Copas)." },
+                    { type: "Narrativa", name: "Protocolo de Dor", effect: "Ignora completamente penalidades de ferimentos leves (-10) durante cenas de combate ativo." }
+                ]
+            },
+            {
+                name: "Atleta Olímpico",
+                group: "Espadas",
+                desc: "Seu corpo é um templo construído com obsessão, dor e busca pela perfeição biomecânica. Você conhece cada fibra muscular, cada limite respiratório. Onde outros veem um obstáculo intransponível, você vê um desafio físico a ser superado. Sua vontade de vencer foi substituída pela vontade de sobreviver.",
+                skills: [
+                    { type: "Passiva", name: "Fôlego Infinito", effect: "Vantagem (rola 2 dados, escolhe o melhor) em qualquer teste de resistência física prolongada (correr, nadar)." },
+                    { type: "Ativa", name: "Explosão de Adrenalina", effect: "Pode realizar um feito de força sobre-humana (levantar escombros, salto impossível) acumulando 2 pontos de Stress instantâneo." },
+                    { type: "Narrativa", name: "Recuperação Metabólica", effect: "Seu corpo recupera dano físico (Espadas) duas vezes mais rápido que o normal durante descansos." }
+                ]
+            },
+            {
+                name: "Bombeiro Civil de Resgate",
+                group: "Espadas",
+                desc: "Você corre para dentro do inferno quando todos estão correndo para fora. Sua força não é para destruir, é para salvar. Acostumado com calor extremo, fumaça tóxica e estruturas colapsando, você desenvolveu uma calma sobrenatural diante do caos elementar. Você carrega o peso dos outros, literal e metaforicamente.",
+                skills: [
+                    { type: "Passiva", name: "Arrombamento Tático", effect: "Recebe +20 em testes para destruir portas, paredes ou remover obstáculos físicos do caminho." },
+                    { type: "Ativa", name: "Carga de Resgate", effect: "Pode carregar outro jogador ou NPC nas costas sem sofrer nenhuma penalidade de movimento ou ação." },
+                    { type: "Narrativa", name: "Pulmões de Aço", effect: "Consegue atuar em ambientes de fumaça, gás ou calor extremo por muito mais turnos antes de sufocar." }
+                ]
+            },
+            {
+                name: "Segurança Privada / Leão de Chácara",
+                group: "Espadas",
+                desc: "Você é uma parede de carne e violência controlada. Treinado para ler a linguagem corporal da agressão, você sabe quando uma conversa vai virar uma briga antes mesmo do primeiro soco. Sua especialidade é a neutralização rápida e a proteção de VIPs. Na Borderland, o 'VIP' são seus amigos.",
+                skills: [
+                    { type: "Ativa", name: "Escudo Humano", effect: "Pode interceptar um ataque físico destinado a um aliado adjacente, recebendo metade do dano no lugar dele." },
+                    { type: "Passiva", name: "Revista Visual", effect: "Detecta automaticamente se alguém está portando armas escondidas ou tem intenção hostil em curta distância." },
+                    { type: "Narrativa", name: "Presença Intimidadora", effect: "Pode usar seu atributo Espadas (físico) no lugar de Paus (social) para testes de intimidação." }
+                ]
+            },
+            {
+                name: "Dublê de Ação (Stuntman)",
+                group: "Espadas",
+                desc: "Para você, o perigo é uma coreografia. Você passou a vida enganando a morte por dinheiro, aprendendo a cair de prédios, ser atropelado e pegar fogo sem morrer de verdade. Agora, as câmeras sumiram, mas suas técnicas de absorção de impacto são a única coisa que te mantém inteiro.",
+                skills: [
+                    { type: "Passiva", name: "Queda Controlada", effect: "Reduz qualquer dano de queda, colisão ou arremesso em 50% através de rolamentos técnicos." },
+                    { type: "Ativa", name: "Improviso Letal", effect: "Pode usar qualquer objeto do cenário (caneta, vidro, cadeira) como uma arma letal com dano normal." },
+                    { type: "Narrativa", name: "Teatralidade Mórbida", effect: "Pode fingir a própria morte ou um ferimento grave com perfeição absoluta para enganar inimigos." }
+                ]
+            },
+            {
+                name: "Yakuza / Executor",
+                group: "Espadas",
+                desc: "O submundo te ensinou que a honra e a violência são a mesma moeda. Você tem tatuagens que contam histórias de crimes e lealdade. Sua tolerância à dor é lendária, quase masoquista. Você não luta por raiva, luta por dever, e executa suas tarefas com uma frieza aterrorizante.",
+                skills: [
+                    { type: "Passiva", name: "Pacto de Sangue", effect: "Ganha bônus de defesa e resistência se estiver lutando para proteger um aliado declarado como 'Irmão'." },
+                    { type: "Ativa", name: "Interrogatório Cinético", effect: "Bônus massivo para extrair informações verdadeiras de um NPC através de dor física controlada." },
+                    { type: "Narrativa", name: "Mãos Letais", effect: "Seu dano desarmado é considerado letal (como se portasse uma faca) devido ao conhecimento de pontos vitais." }
+                ]
+            },
+            {
+                name: "Operário de Construção Pesada",
+                group: "Espadas",
+                desc: "Você construiu a cidade que agora tenta te matar. Suas mãos são lixas grossas, acostumadas a erguer vigas de aço e manipular britadeiras. Você vê o mundo através de cargas, tensões e materiais. Você sabe que tudo o que foi construído pode ser demolido, e sabe exatamente onde bater para derrubar.",
+                skills: [
+                    { type: "Passiva", name: "Olho para Demolição", effect: "Identifica instintivamente fragilidades em estruturas (pilares, paredes) para causar colapsos." },
+                    { type: "Ativa", name: "Arma de Trabalho", effect: "Ferramentas industriais (martelos, chaves de grifo, serras) causam +10 de dano nas suas mãos." },
+                    { type: "Narrativa", name: "Equilíbrio de Viga", effect: "Nunca precisa fazer testes de equilíbrio em superfícies estreitas, instáveis ou altas." }
+                ]
+            },
+            {
+                name: "Dançarino(a) Profissional",
+                group: "Espadas",
+                desc: "Seu corpo é um instrumento de precisão absoluta. Onde outros tropeçam, você flui. Sua consciência espacial e propriocepção são sobre-humanas. Em combate, você não briga; você performa uma dança mortal, esquivando-se de golpes com a graça de quem conhece cada milímetro do próprio alcance.",
+                skills: [
+                    { type: "Ativa", name: "Esquiva Graciosa", effect: "Pode gastar sua ação inteira para focar em defesa, tornando-se intocável por 1 turno (exige crítico para ser acertado)." },
+                    { type: "Passiva", name: "Contorcionismo", effect: "Consegue entrar em espaços, dutos ou frestas onde um humano normal jamais caberia." },
+                    { type: "Narrativa", name: "Metrônomo Interno", effect: "Consegue memorizar e prever padrões de movimento de armadilhas baseadas em tempo ou ritmo." }
+                ]
+            },
+            {
+                name: "Lutador de MMA",
+                group: "Espadas",
+                desc: "A jaula era sua casa, mas lá havia regras e um juiz. Aqui, vale tudo. Você é um especialista no combate um contra um, sabendo exatamente como travar articulações, estrangular o fluxo sanguíneo e apagar a consciência de um oponente. O medo desaparece quando o gongo soa.",
+                skills: [
+                    { type: "Ativa", name: "Grappling Supremo", effect: "Vantagem absoluta para imobilizar um oponente no chão, impedindo-o de agir ou fugir." },
+                    { type: "Passiva", name: "Nocaute Técnico", effect: "Qualquer acerto crítico desarmado deixa o alvo inconsciente imediatamente (sem teste de resistência)." },
+                    { type: "Narrativa", name: "Foco na Dor", effect: "Pode ignorar mecanicamente a dor de um membro quebrado por até 10 minutos para continuar lutando." }
+                ]
+            },
+            {
+                name: "Açougueiro / Magarefe",
+                group: "Espadas",
+                desc: "Você passou a vida desmembrando carcaças. Você conhece a anatomia da carne, onde os tendões se conectam e como separar o osso do músculo com o mínimo esforço. O sangue, as vísceras e o cheiro da morte não te causam repulsa, apenas indiferença profissional. Você vê inimigos como gado.",
+                skills: [
+                    { type: "Passiva", name: "Corte Cirúrgico", effect: "Seus ataques com lâminas causam 'Sangramento Profundo' (dano contínuo por turnos)." },
+                    { type: "Narrativa", name: "Estômago de Ferro", effect: "Imune a náusea, vômito ou pânico causado por cenas de gore extremo ou cheiro de putrefação." },
+                    { type: "Ativa", name: "Desmembramento", effect: "Pode realizar um ataque focado para inutilizar um membro específico do oponente (cortar tendão, decepar mão)." }
+                ]
+            },
+            // GRUPO 2: OUROS
+            {
+                name: "Médico Cirurgião",
+                group: "Ouros",
+                desc: "Você segurou a vida e a morte nas mãos tantas vezes que a linha entre elas sumiu. Seu conhecimento de fisiologia é uma arma: você sabe exatamente o que cura e o que mata. Sua mente é fria, analítica e capaz de funcionar sob pressão extrema onde o menor erro significa um cadáver.",
+                skills: [
+                    { type: "Ativa", name: "Estabilização de Trauma", effect: "Impede a morte de um aliado caído ou cura ferimentos leves sem usar itens, apenas com improviso." },
+                    { type: "Passiva", name: "Diagnóstico Visual", effect: "Identifica venenos, doenças ou causas de morte apenas observando sintomas visuais, sem testes." },
+                    { type: "Narrativa", name: "Mãos de Cirurgião", effect: "Bônus significativo em qualquer tarefa manual delicada (desarmar bombas, consertar circuitos minúsculos)." }
+                ]
+            },
+            {
+                name: "Engenheiro Civil",
+                group: "Ouros",
+                desc: "O mundo é feito de matemática e física. Você vê vetores de força onde outros veem paredes. Você sabe que toda estrutura, por mais imponente que seja, tem um ponto de colapso. Na Borderland, sua mente desconstrói o ambiente, transformando a arquitetura da arena em uma ferramenta ou arma.",
+                skills: [
+                    { type: "Narrativa", name: "Visão de Raio-X", effect: "Consegue deduzir a planta baixa de um prédio (saídas, salas ocultas) apenas observando a estrutura externa." },
+                    { type: "Passiva", name: "Física Intuitiva", effect: "Calcula trajetórias de queda, balanço de cargas e colisões mentalmente com precisão perfeita." },
+                    { type: "Ativa", name: "Engenharia de Sucata", effect: "Pode criar barricadas eficientes ou armadilhas funcionais usando apenas lixo e escombros." }
+                ]
+            },
+            {
+                name: "Hacker / Dev",
+                group: "Ouros",
+                desc: "A realidade é apenas um código complexo, e códigos têm exploits. Você entende a lógica das máquinas melhor do que a dos humanos. Em um mundo de jogos eletrônicos mortais, sua capacidade de entender a sintaxe por trás do desafio é a diferença entre o Game Over e o High Score.",
+                skills: [
+                    { type: "Ativa", name: "Interface Digital", effect: "Pode interagir com terminais desconhecidos para obter logs ou abrir portas eletrônicas (não resolve puzzles instantaneamente)." },
+                    { type: "Narrativa", name: "Bypass de Hardware", effect: "Consegue fazer ligação direta em veículos e burlar fechaduras eletrônicas simples." },
+                    { type: "Passiva", name: "Depuração Lógica", effect: "Em puzzles lógicos, o Mestre elimina 50% das opções erradas ou revela uma regra oculta do sistema." }
+                ]
+            },
+            {
+                name: "Químico / Farmacêutico",
+                group: "Ouros",
+                desc: "Você domina a tabela periódica. Sabe que os produtos de limpeza embaixo da pia podem se tornar gás mostarda ou explosivos instáveis. Você entende como substâncias interagem com o corpo e com o ambiente, transformando o mundo material em seu laboratório pessoal de sobrevivência.",
+                skills: [
+                    { type: "Ativa", name: "Alquimia Urbana", effect: "Pode sintetizar explosivos, ácidos corrosivos ou bombas de fumaça usando itens domésticos comuns." },
+                    { type: "Passiva", name: "Detector de Toxinas", effect: "Identifica a presença de gases, venenos ou líquidos perigosos pelo cheiro ou cor antes de sofrer dano." },
+                    { type: "Narrativa", name: "Farmacologia de Combate", effect: "Sabe misturar medicamentos para efeitos específicos (ex: superdose de adrenalina para reanimar)." }
+                ]
+            },
+            {
+                name: "Arquiteto",
+                group: "Ouros",
+                desc: "Você desenha espaços para controlar pessoas. Você percebe o espaço negativo, as salas que não deveriam existir, os padrões na construção das arenas. Você sabe quando um corredor foi feito para induzir claustrofobia ou quando uma sala é uma armadilha acústica.",
+                skills: [
+                    { type: "Passiva", name: "Sentido de Espaço", effect: "Encontra passagens secretas, fundos falsos e salas ocultas com facilidade sobrenatural." },
+                    { type: "Narrativa", name: "Geometria Aplicada", effect: "Calcula distâncias, alturas e ângulos com precisão perfeita sem necessidade de instrumentos." },
+                    { type: "Ativa", name: "Ponto de Ruptura", effect: "Identifica exatamente qual pilar ou parede destruir para causar um desabamento controlado sobre inimigos." }
+                ]
+            },
+            {
+                name: "Detetive Forense",
+                group: "Ouros",
+                desc: "Você é pago para ver o que os outros ignoram. Uma mancha de sangue, uma pegada, a posição de um corpo: tudo conta uma história. Sua mente reconstrói o passado baseada em evidências físicas. Nada escapa ao seu olhar cínico e treinado para o pior da humanidade.",
+                skills: [
+                    { type: "Passiva", name: "Olho de Águia", effect: "Sempre que examinar um local, o Mestre é obrigado a revelar uma pista visual que passaria despercebida." },
+                    { type: "Ativa", name: "Reconstrução de Cena", effect: "Pode gastar 1 turno para descrever fisicamente como um evento ocorreu baseado nas pistas (não revela motivos, apenas fatos)." },
+                    { type: "Narrativa", name: "Memória Eidética", effect: "Consegue lembrar de detalhes visuais, textos ou rostos vistos dias atrás com clareza fotográfica." }
+                ]
+            },
+            {
+                name: "Contador / Matemático",
+                group: "Ouros",
+                desc: "O universo é caos, mas a matemática é ordem. Você gerencia riscos através de estatística. Você não aposta, você calcula probabilidades. Sua mente otimiza recursos obsessivamente, garantindo que cada gota de água e cada bala sejam usadas com eficiência máxima.",
+                skills: [
+                    { type: "Ativa", name: "Análise de Risco", effect: "O Mestre deve revelar se uma ação proposta tem chance de sucesso Alta, Média ou Suicida (sem números exatos)." },
+                    { type: "Passiva", name: "Gestão de Escassez", effect: "Recursos consumíveis (comida, água, baterias) sob sua guarda duram o dobro do tempo." },
+                    { type: "Narrativa", name: "Reconhecimento de Padrão", effect: "Identifica sequências numéricas e lógicas matemáticas em enigmas instantaneamente." }
+                ]
+            },
+            {
+                name: "Eletricista",
+                group: "Ouros",
+                desc: "Você entende os caminhos invisíveis da energia. Sabe como desviar força, criar curtos-circuitos controlados e usar a fiação de um prédio como arma. Enquanto outros temem a escuridão, você sabe como acender a luz (ou apagá-la para seus inimigos).",
+                skills: [
+                    { type: "Ativa", name: "Mestre da Rede", effect: "Sabe como cortar a energia de uma área específica ou restaurar geradores danificados." },
+                    { type: "Passiva", name: "Alta Voltagem", effect: "Imune a choque acidental. Bônus para criar armadilhas elétricas letais com cabos expostos." },
+                    { type: "Narrativa", name: "Bypass Magnético", effect: "Consegue abrir fechaduras magnéticas e portas de segurança manipulando a fiação." }
+                ]
+            },
+            {
+                name: "Professor de História",
+                group: "Ouros",
+                desc: "Você carrega o peso do conhecimento humano. Conhece as guerras, as táticas antigas e os erros que a humanidade repete incessantemente. Em jogos temáticos ou estratégicos, sua cultura não é trivialidade, é o manual de instruções para não morrer como os outros.",
+                skills: [
+                    { type: "Narrativa", name: "Enciclopédia Viva", effect: "Possui conhecimento sobre fatos obscuros, mitologias e datas que frequentemente aparecem em enigmas de Ouros." },
+                    { type: "Passiva", name: "Poliglota", effect: "Consegue ler, escrever e entender múltiplos idiomas, incluindo códigos antigos ou mortos." },
+                    { type: "Ativa", name: "Tática Histórica", effect: "Concede bônus ao grupo ao reconhecer que o terreno ou desafio imita uma batalha ou evento histórico." }
+                ]
+            },
+            {
+                name: "Mecânico Automotivo",
+                group: "Ouros",
+                desc: "Você fala a língua das máquinas. Motores, engrenagens e pistões são seus amigos. Você consegue fazer uma lata velha funcionar com chiclete e arame, ou desmontar um carro de luxo até virar sucata em minutos. Se tem motor, você domina.",
+                skills: [
+                    { type: "Ativa", name: "Reparo de Campo", effect: "Consegue consertar veículos ou geradores quebrados temporariamente com recursos mínimos." },
+                    { type: "Passiva", name: "Sabotagem", effect: "Sabe exatamente o que retirar para inutilizar um veículo inimigo silenciosamente e sem ferramentas." },
+                    { type: "Narrativa", name: "Mad Max", effect: "Pode improvisar melhorias de blindagem, velocidade ou armas em veículos usando sucata da arena." }
+                ]
+            },
+            // GRUPO 3: PAUS
+            {
+                name: "Político / Diplomata",
+                group: "Paus",
+                desc: "Sua arma é a palavra. Você é um profissional da manipulação de massas, capaz de vender esperança onde só existe desespero. Você lidera não pela força, mas pelo consenso fabricado. Você sabe exatamente quem culpar para manter o grupo unido sob seu comando.",
+                skills: [
+                    { type: "Ativa", name: "Discurso Inflamado", effect: "Bônus massivo para acalmar uma multidão em pânico ou incitar uma revolta violenta contra um alvo." },
+                    { type: "Narrativa", name: "Tratado de Paz", effect: "Vantagem significativa em negociar tréguas ou acordos temporários com grupos rivais." },
+                    { type: "Passiva", name: "Bode Expiatório", effect: "Em caso de falha crítica do grupo, consegue convencer os outros de que a culpa foi de um NPC ou outro jogador." }
+                ]
+            },
+            {
+                name: "Gerente de Projetos (PM)",
+                group: "Paus",
+                desc: "O caos te ofende. Você é um mestre da eficiência, cronogramas e recursos. Enquanto todos correm como baratas tontas, você está delegando tarefas, criando planos de contingência e garantindo que ninguém morra por estupidez ou desorganização.",
+                skills: [
+                    { type: "Ativa", name: "Delegação Eficiente", effect: "Pode sacrificar sua ação no turno para dar uma ordem clara a um aliado, concedendo +20 no teste dele." },
+                    { type: "Passiva", name: "Logística Impecável", effect: "O grupo sob sua liderança nunca perde itens, nunca se perde no mapa e sempre sabe o objetivo." },
+                    { type: "Narrativa", name: "Gestão de Crise", effect: "Reduz o ganho de Stress de todos os aliados próximos enquanto o plano estiver funcionando como previsto." }
+                ]
+            },
+            {
+                name: "Motorista / Caminhoneiro",
+                group: "Paus",
+                desc: "O rei da estrada solitária. Você passou a vida transportando cargas valiosas através de rotas perigosas. Você tem um mapa mental da cidade, reflexos treinados para o desastre e uma resistência mental forjada em noites insones à base de cafeína.",
+                skills: [
+                    { type: "Ativa", name: "Direção Defensiva", effect: "Vantagem absoluta em testes de pilotagem. Pode fazer manobras consideradas impossíveis." },
+                    { type: "Narrativa", name: "GPS Humano", effect: "Nunca se perde na cidade e conhece rotas alternativas, becos e atalhos instintivamente." },
+                    { type: "Passiva", name: "Vigília", effect: "Pode ficar acordado o dobro do tempo que uma pessoa normal sem sofrer penalidades de cansaço ou alucinação." }
+                ]
+            },
+            {
+                name: "Professor Primário",
+                group: "Paus",
+                desc: "Acostumado a gerenciar o caos infantil, você desenvolveu uma paciência de santo e uma autoridade natural que funciona até com adultos desesperados. Você protege os fracos por instinto e sabe explicar o complexo de forma que todos entendam e sobrevivam.",
+                skills: [
+                    { type: "Passiva", name: "Olhar de Proteção", effect: "Identifica instintivamente quem é o elo mais fraco do grupo no momento para protegê-lo." },
+                    { type: "Ativa", name: "Didática de Sobrevivência", effect: "Pode explicar a solução de um enigma para um aliado com Intelecto baixo, permitindo que ele faça o teste sem penalidade." },
+                    { type: "Narrativa", name: "Voz de Autoridade", effect: "Consegue fazer o grupo parar de brigar ou discutir imediatamente apenas com um tom de voz firme." }
+                ]
+            },
+            {
+                name: "Líder Religioso / Padre",
+                group: "Paus",
+                desc: "Um farol de fé em um mundo sem Deus. Você oferece conforto espiritual que cura a mente onde a medicina falha. Sua presença é um lembrete constante de que existe algo além da sobrevivência brutal. As pessoas te seguem porque você lhes dá um motivo para não desistir.",
+                skills: [
+                    { type: "Ativa", name: "Confissão", effect: "Aliados recuperam Stress significativo ao passarem um tempo desabafando seus pecados com você." },
+                    { type: "Passiva", name: "Fé Inabalável", effect: "Concede a si mesmo e aliados próximos bônus contra testes de Pânico causados por medo sobrenatural." },
+                    { type: "Narrativa", name: "Sacrifício do Pastor", effect: "Pode optar por absorver o dano de Stress ou Pânico de um aliado para si mesmo, salvando a mente dele." }
+                ]
+            },
+            {
+                name: "Bartender",
+                group: "Paus",
+                desc: "O psicólogo não-licenciado dos pobres. Você ouve tudo, vê tudo e serve o veneno que as pessoas pedem. Você sabe misturar substâncias, mediar brigas de bêbados e extrair segredos valiosos apenas sendo um bom ouvinte e mantendo os copos cheios.",
+                skills: [
+                    { type: "Passiva", name: "Ouvinte Invisível", effect: "Coleta rumores e informações valiosas em locais sociais sem parecer suspeito ou chamar atenção." },
+                    { type: "Narrativa", name: "Química Social", effect: "Sabe identificar instantaneamente quem está bêbado, drogado, instável emocionalmente ou mentindo." },
+                    { type: "Ativa", name: "Mixologia de Combate", effect: "Sabe criar coquetéis molotov improvisados ou bebidas energéticas potentes com restos de álcool e químicos." }
+                ]
+            },
+            {
+                name: "Treinador (Coach)",
+                group: "Paus",
+                desc: "Você vive para extrair o máximo potencial dos outros. Você sabe quando gritar para motivar e quando acolher para curar. Você lê a linguagem corporal do cansaço e da derrota, e recusa-se terminantemente a deixar seu time desistir antes do apito final (ou da morte).",
+                skills: [
+                    { type: "Ativa", name: "Preleção Motivacional", effect: "Dá um discurso que concede +10 temporário em um atributo específico para um aliado por 1 turno." },
+                    { type: "Passiva", name: "Leitura de Fadiga", effect: "Sabe exatamente o quão cansado, ferido ou perto de desistir um oponente (ou aliado) está." },
+                    { type: "Narrativa", name: "Segundo Fôlego", effect: "Pode remover o status 'Desistência' ou 'Medo Paralisante' de um aliado com uma ação de incentivo." }
+                ]
+            },
+            {
+                name: "Líder Sindical",
+                group: "Paus",
+                desc: "Um guerreiro da classe trabalhadora. Você sabe organizar greves, resistir à opressão policial e negociar com autoridades hostis. Você entende a força que existe na união coletiva e está acostumado a apanhar sem quebrar. Você luta pelo grupo, não por si mesmo.",
+                skills: [
+                    { type: "Ativa", name: "Organização de Massa", effect: "Consegue coordenar NPCs ou aliados para realizarem uma tarefa braçal conjunta (barricada, empurrar) com eficiência dobrada." },
+                    { type: "Passiva", name: "Negociação Coletiva", effect: "Consegue melhores recompensas ou condições de troca ao negociar em nome do grupo." },
+                    { type: "Narrativa", name: "Resistência Urbana", effect: "Acostumado a confrontos de rua, possui um bônus de Vigor superior a outras classes sociais." }
+                ]
+            },
+            {
+                name: "Guia Turístico",
+                group: "Paus",
+                desc: "Um mestre da localização e da comunicação intercultural. Você sabe vender a beleza de um lugar, mas também sabe como navegar pelo caos dele. Você fala línguas, entende mapas confusos e sabe como manter um grupo de pessoas perdidas e assustadas em movimento.",
+                skills: [
+                    { type: "Passiva", name: "Senso de Direção", effect: "Encontra atalhos, rotas de fuga e pontos de referência cardeais em qualquer ambiente urbano ou selvagem." },
+                    { type: "Narrativa", name: "Barreira Linguística", effect: "Consegue se comunicar basicamente em qualquer idioma ou através de gestos universais com precisão." },
+                    { type: "Ativa", name: "Memória Fotográfica", effect: "Consegue lembrar e desenhar mapas de locais vistos apenas uma vez com precisão de detalhes." }
+                ]
+            },
+            {
+                name: "Piloto de Avião",
+                group: "Paus",
+                desc: "Profissional da frieza sob pressão atmosférica. Você é treinado para gerenciar crises a 30 mil pés de altura enquanto centenas de vidas dependem das suas mãos. Você confia nos seus instrumentos e protocolos. Quando o pânico se instala, você é a voz calma no interfone.",
+                skills: [
+                    { type: "Passiva", name: "Sangue Frio", effect: "Ignora testes de Pânico em situações de alta velocidade, altura vertiginosa ou falha mecânica catastrófica." },
+                    { type: "Ativa", name: "Mestre dos Instrumentos", effect: "Sabe operar qualquer painel de controle complexo, alavancas ou sistemas, mesmo que não sejam de aviões." },
+                    { type: "Narrativa", name: "Visão Espacial 3D", effect: "Tem uma noção perfeita de posicionamento, altura, distância e velocidade relativa de objetos." }
+                ]
+            },
+            // GRUPO 4: COPAS
+            {
+                name: "Psicólogo Clínico",
+                group: "Copas",
+                desc: "Engenheiro da mente humana. Você entende os mecanismos do trauma, da negação e da psicose. Você pode consertar uma mente quebrada ou quebrá-la ainda mais, encontrando os pontos de pressão exatos nas inseguranças de uma pessoa. Na Borderland, a mente é a primeira coisa a falhar.",
+                skills: [
+                    { type: "Ativa", name: "Perfil Psicológico", effect: "Após interagir, descobre a 'Natureza' (Vício) e o 'Trauma' oculto de um personagem." },
+                    { type: "Narrativa", name: "Sessão de Terapia", effect: "Seus aliados recuperam o dobro de Stress durante um descanso longo se você estiver cuidando deles." },
+                    { type: "Passiva", name: "Psy-Op", effect: "Pode induzir hesitação, dúvida ou medo em um inimigo usando apenas palavras e leitura fria." }
+                ]
+            },
+            {
+                name: "Ator / Atriz",
+                group: "Copas",
+                desc: "Um camaleão profissional. Você não tem identidade fixa, apenas papéis. Você pode chorar sob comando, fingir amor, ódio ou medo com tal perfeição que engana até a si mesmo. Na Borderland, você interpreta o papel do sobrevivente, e ninguém sabe quem você é de verdade.",
+                skills: [
+                    { type: "Passiva", name: "Máscara Perfeita", effect: "Pode fingir qualquer emoção ou estado mental perfeitamente, sendo imune a testes simples de detecção de mentira." },
+                    { type: "Ativa", name: "Mestre dos Disfarces", effect: "Pode se passar por outra pessoa, NPC ou membro de uma facção inimiga com os acessórios certos e tempo." },
+                    { type: "Narrativa", name: "Mímica Vocal", effect: "Copia a voz, sotaque e trejeitos de alguém que observou por pelo menos um minuto." }
+                ]
+            },
+            {
+                name: "Vigarista (Con Artist)",
+                group: "Copas",
+                desc: "Um predador social. Você vê as pessoas como cofres a serem abertos. Você usa a confiança, a ganância e a luxúria das vítimas contra elas mesmas. Você nunca diz a verdade se uma mentira for mais lucrativa. O apocalipse é apenas mais uma oportunidade de golpe.",
+                skills: [
+                    { type: "Passiva", name: "Leitura Fria", effect: "Sabe instintivamente o que a pessoa quer ouvir para ser manipulada ou confiar em você." },
+                    { type: "Ativa", name: "Mãos Leves", effect: "Pode roubar itens pequenos dos bolsos de alguém sem ser percebido enquanto mantém uma conversa." },
+                    { type: "Narrativa", name: "Falsificação", effect: "Cria documentos, identidades ou provas falsas convincentes com materiais simples encontrados no lixo." }
+                ]
+            },
+            {
+                name: "Jogador de Pôquer",
+                group: "Copas",
+                desc: "Mestre do risco calculado e do blefe. Você joga com as probabilidades e com as pessoas. Você sabe quando aumentar a aposta e quando desistir. Sua face é uma máscara impenetrável que esconde suas verdadeiras intenções. A vida é apenas uma mão de cartas ruins.",
+                skills: [
+                    { type: "Passiva", name: "Poker Face", effect: "Impossível saber se está mentindo, com medo ou confiante. Imune a leitura de intenção." },
+                    { type: "Narrativa", name: "Cálculo de Fold", effect: "Sabe instintivamente quando uma situação (aposta) é estatisticamente perdida e deve ser abandonada imediatamente." },
+                    { type: "Ativa", name: "O Grande Blefe", effect: "Convence inimigos de que você tem uma vantagem letal (arma, bomba, reforços) mesmo estando completamente indefeso." }
+                ]
+            },
+            {
+                name: "Host / Hostess",
+                group: "Copas",
+                desc: "Profissional da noite e do desejo. Treinado para fazer o cliente se sentir especial, amado e importante, tudo para vender garrafas caras. Você domina a arte da conversa fiada, do flerte tático e da manipulação emocional sutil. As pessoas fazem loucuras por você.",
+                skills: [
+                    { type: "Ativa", name: "Sedução Tática", effect: "Vantagem massiva em manipular personagens que sintam atração pelo seu gênero ou tipo." },
+                    { type: "Narrativa", name: "Distração Social", effect: "Mantém a atenção total de alguém com charme enquanto o resto do grupo age furtivamente ao redor." },
+                    { type: "Passiva", name: "Acesso VIP", effect: "Consegue entrada em áreas exclusivas ou proteção de figuras poderosas através de conexões sociais." }
+                ]
+            },
+            {
+                name: "Vidente / Místico",
+                group: "Copas",
+                desc: "Você vive da necessidade humana de acreditar. Seja charlatão ou crente, você sabe usar a superstição e o medo do desconhecido para controlar as pessoas. Você dá sentido ao caos, transforma coincidências em destino e isso é poder puro neste mundo quebrado.",
+                skills: [
+                    { type: "Ativa", name: "Leitura de Aura", effect: "O Mestre descreve a 'sensação' de um local (perigo, morte, segurança) de forma abstrata, mas útil." },
+                    { type: "Passiva", name: "Efeito Forer", effect: "Faz as pessoas acreditarem que você sabe detalhes íntimos sobre o passado delas usando afirmações vagas." },
+                    { type: "Narrativa", name: "Ritual de Proteção", effect: "Sua fé ou encenação concede bônus real contra medos sobrenaturais para o grupo que acredita em você." }
+                ]
+            },
+            {
+                name: "Influencer Digital",
+                group: "Copas",
+                desc: "Uma celebridade da era da atenção. Você sabe como cultivar uma imagem, como criar narrativas e como mobilizar seguidores. Você é narcisista, carismático e sabe que a percepção é mais importante que a realidade. Se não foi postado, não aconteceu.",
+                skills: [
+                    { type: "Ativa", name: "Culto de Personalidade", effect: "Influencia facilmente grupos grandes de pessoas com mente fraca ou impressionável para te seguirem." },
+                    { type: "Narrativa", name: "Manutenção de Imagem", effect: "Finge estar bem, limpo e confiante mesmo na pior situação, impedindo que a moral do grupo caia." },
+                    { type: "Passiva", name: "Spin Doctor", effect: "Consegue distorcer a narrativa de um evento passado para fazer parecer que a culpa foi de outra pessoa." }
+                ]
+            },
+            {
+                name: "Vendedor de Carros",
+                group: "Copas",
+                desc: "O arquétipo do negociador agressivo e sem escrúpulos. Você vende sucata como se fosse ouro. Você usa pressão, falsa urgência e sorrisos falsos para fechar o negócio. Você não aceita um 'não' como resposta e sabe exatamente o preço de tudo e de todos.",
+                skills: [
+                    { type: "Ativa", name: "Lábia Agressiva", effect: "Vende qualquer ideia, plano ou item, por pior que seja, para NPCs indecisos ou desesperados." },
+                    { type: "Narrativa", name: "Tática de Pressão", effect: "Força alguém a tomar uma decisão rápida (e geralmente errada) colocando-a sob stress verbal." },
+                    { type: "Passiva", name: "Avaliação de Valor", effect: "Sabe o valor real de itens de troca e percebe instantaneamente quando está sendo enganado em um negócio." }
+                ]
+            },
+            {
+                name: "Negociador de Reféns",
+                group: "Copas",
+                desc: "Policial especializado em desarmar bombas humanas com palavras. Você sabe falar com pessoas no seu pior momento, no limite da sanidade. Você oferece empatia tática, cria vínculos e busca a desescalada, mas está sempre pronto para dar o sinal de tiro se a conversa falhar.",
+                skills: [
+                    { type: "Ativa", name: "Desescalada", effect: "Pode parar um combate iminente antes do primeiro tiro usando apenas diálogo e testes de Copas." },
+                    { type: "Passiva", name: "A Arte da Troca", effect: "Consegue sempre as melhores condições possíveis em um impasse tenso." },
+                    { type: "Narrativa", name: "Empatia Tática", effect: "Cria um vínculo artificial rápido com o agressor para manipulá-lo e prever suas ações." }
+                ]
+            },
+            {
+                name: "Fanático Religioso",
+                group: "Copas",
+                desc: "Alguém que encontrou propósito na submissão total a uma doutrina. Você não teme a morte porque acredita que ela é apenas uma passagem ou recompensa. Sua convicção é assustadora, contagiante e inabalável. Para você, a Borderland é um teste divino.",
+                skills: [
+                    { type: "Passiva", name: "Zelo Fanático", effect: "Ganha bônus em todos os atributos se acreditar verdadeiramente que a ação é uma 'missão divina'." },
+                    { type: "Ativa", name: "Conversão", effect: "Pode recrutar NPCs fracos mentalmente para sua 'causa', criando seguidores leais até a morte." },
+                    { type: "Narrativa", name: "Sangue de Mártir", effect: "Se morrer, sua morte inspira os aliados, curando totalmente o Stress de quem presenciar o sacrifício." }
+                ]
             }
-        }
+        ];
 
-        // --- 2. NAVEGAÇÃO ---
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-red-600', 'text-white', 'shadow-lg');
-                btn.classList.add('text-zinc-400');
+        // --- DADOS MASSIVOS DE PERSONALIDADES ---
+        const personalities = [
+            { name: "Analítico", desc: "Vê o mundo como uma planilha de dados. Emoções são variáveis ineficientes que atrapalham o julgamento. Decide quem vive ou morre baseado puramente em utilidade e probabilidade de sucesso. Se tiver que sacrificar um para salvar dez, fará isso sem piscar, mas jamais entenderá por que os outros choram." },
+            { name: "Covarde", desc: "O instinto de autopreservação é seu único deus. O medo não é uma fraqueza, é o combustível que o mantém vivo. Ele fugirá primeiro, se esconderá melhor e, se necessário, usará os amigos como escudo humano ou distração. Ele sobrevive, mas a que custo?" },
+            { name: "Heroico", desc: "Sofre de um Complexo de Salvador patológico. Sente uma necessidade compulsiva de se sacrificar pelos outros, muitas vezes colocando o grupo inteiro em risco por tentar salvar alguém que já está condenado. Não suporta a culpa de ser o único sobrevivente." },
+            { name: "Sádico", desc: "Descobriu na Borderland um playground para seus impulsos mais sombrios. Sente prazer ou curiosidade mórbida na dor alheia. Ele provoca conflitos sutis, tortura inimigos rendidos e sorri quando o sangue jorra. O apocalipse libertou seu verdadeiro eu." },
+            { name: "Niilista", desc: "Acredita profundamente que nada importa. A vida e a morte são piadas cósmicas sem graça. Age de forma imprudente e aleatória porque não teme o fim, apenas o tédio. Para ele, o jogo já acabou antes de começar." },
+            { name: "Pragmático", desc: "O fim justifica os meios, sempre. Ele fará o trabalho sujo que ninguém quer fazer. Matará o ferido para não atrasar o grupo, roubará comida dos fracos e dormirá tranquilo à noite, sabendo que fez o necessário para ver o amanhecer." },
+            { name: "Otimista Delirante", desc: "Recusa-se a aceitar a realidade brutal. Acredita que o resgate está chegando, que é tudo um sonho, um teste ou um reality show. Mantém um sorriso perturbador enquanto o mundo queima, incapaz de processar o luto." },
+            { name: "Pessimista", desc: "Já aceitou a morte, apenas espera a hora chegar. Ele aponta todas as falhas nos planos, prevê o pior cenário sempre e drena a energia do grupo com sua negatividade constante. Ele está sempre certo, mas ninguém gosta dele." },
+            { name: "Líder Nato", desc: "Assume o comando não por desejo de poder, mas porque os outros são incompetentes demais para sobreviver sozinhos. É autoritário, decidido e carrega o peso esmagador de todas as decisões erradas. O estresse de ser o pilar o corrói por dentro." },
+            { name: "Seguidor", desc: "Incapaz de tomar decisões próprias sob pressão. Precisa desesperadamente de uma ordem ou de um líder para funcionar. Se ficar sozinho, entra em catatonia e morre. Ele é uma ferramenta útil, mas sem vontade própria." },
+            { name: "Lobo Solitário", desc: "Trabalha melhor sozinho e vê o grupo como um fardo barulhento e ineficiente. Só colabora quando é matematicamente vantajoso para sua própria sobrevivência. Mantém segredos, esconde recursos e dorme afastado dos outros." },
+            { name: "Dependente", desc: "Escolhe uma pessoa específica do grupo para ser seu 'pilar emocional'. Se essa pessoa morrer, ele perde a vontade de viver, comete suicídio ou enlouquece completamente. Sua lealdade é a uma pessoa, não ao grupo." },
+            { name: "Agressivo", desc: "A tensão o faz explodir. Resolve problemas gritando, socando paredes ou iniciando brigas físicas. A raiva é seu único mecanismo de defesa contra o medo paralisante que sente no fundo. É uma bomba relógio social." },
+            { name: "Passivo", desc: "Entrou em estado de dormência emocional. Aceita qualquer decisão, caminha para a morte sem lutar, como gado no matadouro. Não tem esperança, nem medo, apenas uma inércia vazia. Precisa ser arrastado para sobreviver." },
+            { name: "Manipulador", desc: "Vê as pessoas como peças de xadrez em seu jogo pessoal. Cria intrigas, planta sementes de discórdia e garante que ele seja sempre o membro mais valioso (e intocável) do grupo. A sobrevivência é um jogo social." },
+            { name: "Ingênuo", desc: "Mantém uma inocência perigosa. Acredita na bondade dos estranhos, confia nos Dealers, cai em armadilhas óbvias. É a pureza em um mundo sujo, o que geralmente significa que morrerá rápido e de forma trágica." },
+            { name: "Estoico", desc: "A Rocha. Não demonstra emoção, dor ou medo. Guarda tudo para si, absorvendo o trauma como uma esponja até o momento inevitável em que explode violentamente ou colapsa silenciosamente em um canto." },
+            { name: "Neurótico (TOC)", desc: "Desenvolveu rituais obsessivos para tentar controlar o caos. Verifica a munição dez vezes, limpa as mãos compulsivamente, repete frases. O detalhe o salva, ou o paralisa quando o ritual é interrompido." },
+            { name: "Narcisista", desc: "Acredita ser o protagonista da história e que nada de ruim pode realmente acontecer com ele. Os outros são NPCs feitos para servi-lo ou morrer por ele. Não aceita críticas e surta se não for o centro das atenções." },
+            { name: "Altruísta", desc: "Uma anomalia na Borderland. Divide sua comida, sua água e seu tempo. Sua bondade é sua maior fraqueza, pois atrai parasitas, mas também é sua maior força, pois cria lealdade genuína. Provavelmente morrerá salvando um ingrato." },
+            { name: "Paranoico", desc: "Acredita que todos são traidores em potencial, inclusive seus amigos. Vê sinais ocultos onde não existem. Dorme de olhos abertos e com a faca na mão. A desconfiança o mantém vivo, mas sozinho." },
+            { name: "Confiante", desc: "Acha que o jogo é fácil ou que é mais habilidoso do que realmente é. Subestima os riscos, zomba dos perigos e geralmente morre por excesso de confiança ou por tentar um feito impossível para se exibir." },
+            { name: "Disciplinado", desc: "Segue regras, horários e hierarquias estritas. A ordem é a única coisa que impede sua mente de quebrar. Fica perdido ou furioso quando as coisas saem do planejado ou quando o caos impera." },
+            { name: "Caótico", desc: "O Elemento Coringa. Age por impulso puro e momentâneo. Imprevisível, perigoso e aleatório. Pode salvar o grupo com uma ideia louca e genial ou matar todos por diversão ou curiosidade. Ninguém sabe o próximo passo dele." },
+            { name: "Místico", desc: "Acredita que a Borderland é o Purgatório, o Inferno ou um Teste Divino. Vê significado espiritual em cada morte, cada carta e cada jogo. Busca redenção ou punição, não sobrevivência." }
+        ];
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => {
+                t.classList.remove('active');
+                t.style.opacity = '0';
             });
-            document.getElementById(id).classList.add('active');
-            document.getElementById('btn-' + id).classList.add('bg-red-600', 'text-white', 'shadow-lg');
-            document.getElementById('btn-' + id).classList.remove('text-zinc-400');
-        }
-
-        // --- 3. PROFISSÕES ---
-        function updateJobInfo() {
-            const select = document.getElementById('char-job');
-            const option = select.options[select.selectedIndex];
-            const descBox = document.getElementById('job-desc-box');
-            resetStats();
-            if (option.value) {
-                descBox.innerHTML = `<span class="text-white font-bold">Habilidade:</span> ${option.getAttribute('data-skill')}`;
-                descBox.classList.remove('text-zinc-400');
-                descBox.classList.add('text-red-400');
-                const bonus = option.getAttribute('data-bonus');
-                if(bonus) document.getElementById('attr-' + bonus).value = 40;
-            } else {
-                descBox.innerHTML = "Habilidade passiva aparecerá aqui...";
-                descBox.classList.add('text-zinc-400');
-                descBox.classList.remove('text-red-400');
-            }
-        }
-
-        function resetStats() {
-            ['spades','diamonds','hearts','clubs'].forEach(s => document.getElementById('attr-'+s).value = 30);
-        }
-
-        // --- 4. BARRAS VITAIS ---
-        function updateBars() {
-            const visa = document.getElementById('rng-visa').value;
-            const stress = document.getElementById('rng-stress').value;
             
-            const visaTxt = document.getElementById('txt-visa');
-            visaTxt.innerText = visa + " DIAS";
-            visa <= 3 ? visaTxt.classList.add('animate-pulse','text-red-600') : visaTxt.classList.remove('animate-pulse','text-red-600');
+            const activeTab = document.getElementById(id);
+            activeTab.classList.add('active');
             
-            document.getElementById('txt-stress').innerText = stress + " / 20";
-            const bar = document.getElementById('bar-stress');
-            bar.style.width = Math.min((stress/25)*100, 100) + "%";
-            
-            if(stress < 10) bar.style.backgroundColor = "#3b82f6";
-            else if(stress < 20) bar.style.backgroundColor = "#eab308";
-            else bar.style.backgroundColor = "#dc2626";
-
-            const panic = document.getElementById('panic-msg');
-            stress >= 20 ? panic.classList.remove('hidden') : panic.classList.add('hidden');
-        }
-
-        // --- 5. ROLAGEM CEGA ---
-        function blindRoll() {
-            const feedback = document.getElementById('roll-feedback');
-            const attrVal = document.getElementById('roll-attr').value;
-            feedback.style.opacity = 1;
-            feedback.innerHTML = `<i class="fa-solid fa-wifi mr-2 fa-beat"></i> ENVIANDO [${attrVal}] AO MESTRE...`;
-            feedback.className = "text-xs font-bold uppercase tracking-widest text-yellow-500";
-            
+            // Pequeno delay para animação de opacidade
             setTimeout(() => {
-                feedback.innerHTML = `<i class="fa-solid fa-check mr-2"></i> DADOS RECEBIDOS. AGUARDE RESULTADO.`;
-                feedback.className = "text-xs font-bold uppercase tracking-widest text-green-500";
-            }, 1500);
-            setTimeout(() => feedback.style.opacity = 0, 4500);
-        }
-
-        // --- 6. FOTO ---
-        function triggerPhotoUpload() { document.getElementById('photo-input').click(); }
-        function loadPhoto(e) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const img = document.getElementById('char-photo');
-                img.src = reader.result;
-                img.classList.remove('hidden');
-                document.getElementById('photo-placeholder').classList.add('hidden');
+                activeTab.style.opacity = '1';
+            }, 50);
+            
+            // Atualizar botões
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('border-red-600', 'text-white', 'bg-red-900/20');
+                b.classList.add('border-zinc-700', 'text-zinc-300', 'bg-zinc-900');
+            });
+            
+            const activeBtn = document.querySelector(`button[onclick="switchTab('${id}')"]`);
+            if(activeBtn) {
+                activeBtn.classList.remove('border-zinc-700', 'text-zinc-300', 'bg-zinc-900');
+                activeBtn.classList.add('border-red-600', 'text-white', 'bg-red-900/20');
             }
-            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
         }
 
-        // --- 7. SAVE/LOAD ---
-        function downloadSheet() {
-            const data = {
-                name: document.getElementById('char-name').value,
-                jobIdx: document.getElementById('char-job').selectedIndex,
-                natureIdx: document.getElementById('char-nature').selectedIndex,
-                bio: document.getElementById('char-bio').value,
-                stats: {
-                    spades: document.getElementById('attr-spades').value,
-                    diamonds: document.getElementById('attr-diamonds').value,
-                    hearts: document.getElementById('attr-hearts').value,
-                    clubs: document.getElementById('attr-clubs').value
-                },
-                visa: document.getElementById('rng-visa').value,
-                stress: document.getElementById('rng-stress').value,
-                photo: document.getElementById('char-photo').src
-            };
-            const el = document.createElement('a');
-            el.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-            el.download = "dossie_borderland.json";
-            el.click();
+        function renderJobs(filter = "") {
+            const container = document.getElementById('jobList');
+            container.innerHTML = "";
+            
+            const filtered = professions.filter(p => 
+                p.name.toLowerCase().includes(filter.toLowerCase()) || 
+                p.group.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            filtered.forEach(job => {
+                let borderClass = "";
+                let titleColor = "";
+                let icon = "";
+                
+                if(job.group === "Espadas") { borderClass = "border-blue-600"; titleColor = "text-blue-500"; icon = "fa-shield-halved"; }
+                if(job.group === "Ouros") { borderClass = "border-yellow-500"; titleColor = "text-yellow-500"; icon = "fa-brain"; }
+                if(job.group === "Paus") { borderClass = "border-green-600"; titleColor = "text-green-500"; icon = "fa-users"; }
+                if(job.group === "Copas") { borderClass = "border-red-600"; titleColor = "text-red-500"; icon = "fa-heart-crack"; }
+
+                const card = document.createElement('div');
+                card.className = `lore-card p-6 rounded-lg border-l-4 ${borderClass} flex flex-col h-full`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4 border-b border-zinc-800 pb-2">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid ${icon} ${titleColor} text-xl"></i>
+                            <h3 class="font-black uppercase text-lg text-white tracking-wide">${job.name}</h3>
+                        </div>
+                        <span class="text-[10px] uppercase bg-black border border-zinc-700 px-2 py-1 rounded text-zinc-400 font-mono">${job.group}</span>
+                    </div>
+                    
+                    <p class="text-sm text-zinc-400 mb-6 italic leading-relaxed text-justify-custom flex-grow">"${job.desc}"</p>
+                    
+                    <div class="space-y-3 mt-auto">
+                        ${job.skills.map(s => `
+                            <div class="bg-black/40 p-3 rounded border border-zinc-800 hover:border-zinc-600 transition-colors">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="skill-badge ${titleColor} bg-zinc-900 border border-current">${s.type}</span>
+                                    <strong class="text-xs text-zinc-200 uppercase tracking-wide">${s.name}</strong>
+                                </div>
+                                <p class="text-[11px] text-zinc-500 leading-snug text-justify-custom">${s.effect}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
-        function uploadSheet() {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = '.json';
-            input.onchange = e => {
-                const reader = new FileReader();
-                reader.onload = re => {
-                    const d = JSON.parse(re.target.result);
-                    document.getElementById('char-name').value = d.name || "";
-                    document.getElementById('char-job').selectedIndex = d.jobIdx || 0;
-                    document.getElementById('char-nature').selectedIndex = d.natureIdx || 0;
-                    updateJobInfo();
-                    document.getElementById('char-bio').value = d.bio || "";
-                    if(d.stats) {
-                        document.getElementById('attr-spades').value = d.stats.spades;
-                        document.getElementById('attr-diamonds').value = d.stats.diamonds;
-                        document.getElementById('attr-hearts').value = d.stats.hearts;
-                        document.getElementById('attr-clubs').value = d.stats.clubs;
-                    }
-                    document.getElementById('rng-visa').value = d.visa || 3;
-                    document.getElementById('rng-stress').value = d.stress || 0;
-                    updateBars();
-                    if(d.photo && d.photo.length > 50) {
-                        const img = document.getElementById('char-photo');
-                        img.src = d.photo;
-                        img.classList.remove('hidden');
-                        document.getElementById('photo-placeholder').classList.add('hidden');
-                    }
-                    alert("Dossiê carregado.");
-                }
-                reader.readAsText(e.target.files[0]);
-            }
-            input.click();
+        function filterJobs() {
+            const val = document.getElementById('jobSearch').value;
+            renderJobs(val);
         }
 
-        updateBars();
+        function renderPersonalities() {
+            const container = document.getElementById('personaList');
+            personalities.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "lore-card p-5 rounded border border-zinc-800 hover:border-purple-500 transition-all group";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 mb-3 pb-2 border-b border-zinc-800 group-hover:border-purple-500/30 transition-colors">
+                        <i class="fa-solid fa-mask text-purple-600"></i>
+                        <strong class="block text-purple-400 uppercase font-bold tracking-widest">${p.name}</strong>
+                    </div>
+                    <p class="text-sm text-zinc-400 leading-relaxed text-justify-custom">${p.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Init
+        window.onload = () => {
+            renderJobs();
+            renderPersonalities();
+            // Ativa a primeira aba visualmente
+            switchTab('creation');
+        };
+
     </script>
 </body>
 </html>
